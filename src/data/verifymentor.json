@@ -3,7 +3,7 @@
     {
       "first_name": "Sruthi",
       "last_name": "B",
-      "email": "sruthib@am.amrita.edu",
+      "email": "sruthigirish@am.amrita.edu",
       "secret_id": "934721"
     },
     {
@@ -15,13 +15,13 @@
     {
       "first_name": "Anjana",
       "last_name": "A",
-      "email": "anjanaa@am.amrita.edu",
+      "email": "anjanab@am.amrita.edu",
       "secret_id": "720193"
     },
     {
       "first_name": "Narayanan",
       "last_name": "R S",
-      "email": "narayanan.rs@am.amrita.edu",
+      "email": "sathyanarayanan@am.amrita.edu",
       "secret_id": "184502"
     },
     {
@@ -39,13 +39,13 @@
     {
       "first_name": "Gayathry",
       "last_name": "S L",
-      "email": "gayathrysl@am.amrita.edu",
+      "email": "gayathryls@am.amrita.edu",
       "secret_id": "763912"
     },
     {
       "first_name": "Gowry",
       "last_name": "S Kumar",
-      "email": "gowryskumar@am.amrita.edu",
+      "email": "gowrysk@am.amrita.edu",
       "secret_id": "492176"
     },
     {
@@ -57,7 +57,7 @@
     {
       "first_name": "Vishnu",
       "last_name": "B",
-      "email": "vishnub@am.amrita.edu",
+      "email": "Vishnubalachandran@am.amrita.edu",
       "secret_id": "941237"
     },
     {
@@ -69,7 +69,7 @@
     {
       "first_name": "Senthil",
       "last_name": "Kumar",
-      "email": "senthil.kumar@am.amrita.edu",
+      "email": "senthilks@am.amrita.edu",
       "secret_id": "214863"
     },
     {
@@ -81,31 +81,31 @@
     {
       "first_name": "Rashmy",
       "last_name": "J",
-      "email": "rashmy.j@am.amrita.edu",
+      "email": "rashmyj@am.amrita.edu",
       "secret_id": "810295"
     },
     {
       "first_name": "Jayakumaran",
       "last_name": "A",
-      "email": "jayakumarana@am.amrita.edu",
+      "email": "jayakumaran@am.amrita.edu",
       "secret_id": "546812"
     },
     {
       "first_name": "Kiran Kumar",
       "last_name": "B",
-      "email": "kiran.kumarb@am.amrita.edu",
+      "email": "kirankumarb@am.amrita.edu",
       "secret_id": "789305"
     },
     {
       "first_name": "Krishnakumar",
       "last_name": "K P",
-      "email": "krishnakumarkp@am.amrita.edu",
+      "email": "krishnakkp@am.amrita.edu",
       "secret_id": "612483"
     },
     {
       "first_name": "Krishna Kripa",
       "last_name": "K V",
-      "email": "krishnakripa.kv@am.amrita.edu",
+      "email": "krishnakripakv@am.amrita.edu",
       "secret_id": "937284"
     },
     {
@@ -113,6 +113,12 @@
       "last_name": "Suresh",
       "email": "karthikasuresh@am.amrita.edu",
       "secret_id": "501273"
+    },
+     {
+      "first_name": "Demo",
+      "last_name": "Mentor",
+      "email": "demomentor@am.amrita.edu",
+      "secret_id": "040491"
     }
   ]
 }
