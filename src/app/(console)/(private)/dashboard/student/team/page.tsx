@@ -134,6 +134,10 @@ export default function TeamPage() {
                 <p className="text-gray-600">Team Number:</p>
                 <p className="font-medium">{team.teamNumber}</p>
               </div>
+                <div className="flex justify-between items-center">
+                <p className="text-gray-600">Batch:</p>
+                <p className="font-medium">{team.batch}</p>
+              </div>
               <div className="flex justify-between items-center">
                 <p className="text-gray-600">Project Title:</p>
                 <p className="font-medium">{team.projectTitle}</p>

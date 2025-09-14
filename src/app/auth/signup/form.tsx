@@ -18,16 +18,31 @@ import prisma from '@/lib/db/prisma';
 
 const FormSchema = z
   .object({
+    // firstName: z
+    //   .string()
+    //   .min(2, 'First name must be atleast 2 characters')
+    //   .max(100, 'First name must be less than 45 characters')
+    //   .regex(new RegExp('^[a-zA-Z]+$'), 'No special character allowed!'),
+    // lastName: z
+    //   .string()
+    //   .min(0, 'Last name must be atleast 2 characters')
+    //   .max(100, 'Last name must be less than 45 characters')
+    //   .regex(new RegExp('^[a-zA-Z]+$'), 'No special character allowed!'),
     firstName: z
-      .string()
-      .min(2, 'First name must be atleast 2 characters')
-      .max(45, 'First name must be less than 45 characters')
-      .regex(new RegExp('^[a-zA-Z]+$'), 'No special character allowed!'),
+        .string()
+        .trim()
+        .min(2, 'First name must be at least 2 characters')
+        .max(70, 'First name must be less than 70 characters')
+        .regex(/^[A-Za-z]+(?:\s[A-Za-z]+)*$/, 'No special character allowed!'),
+
     lastName: z
       .string()
-      .min(1, 'Last name must be atleast 2 characters')
-      .max(45, 'Last name must be less than 45 characters')
-      .regex(new RegExp('^[a-zA-Z]+$'), 'No special character allowed!'),
+        .trim()
+        .max(100, 'Last name must be less than 100 characters')
+        .regex(/^[A-Za-z]+(?:\s[A-Za-z]+)*$/, 'No special character allowed!')
+        .optional()
+        .or(z.literal('')),
+
     email: z
       .string()
       .email('Please enter a valid email address')

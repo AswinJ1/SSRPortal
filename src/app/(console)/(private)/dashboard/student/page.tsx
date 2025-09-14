@@ -11,6 +11,7 @@ interface ProjectStats {
   projectTitle: string;
   status: string;
   completedMilestones: number;
+  batch: string; // Add batch information
   totalMilestones: number;
   nextDeadline: string;
   mentorName: string;
@@ -66,7 +67,8 @@ export default function StudentDashboard() {
             'Not assigned',
           lastUpdate: 'Recently',
           members: teamData.members, // This should already be correctly formatted
-          recentActivities: []
+          recentActivities: [],
+          batch: teamData.batch // Add batch information
         };
         
         setProjectStats(transformedStats);
@@ -158,6 +160,7 @@ export default function StudentDashboard() {
               <h3 className="text-lg font-semibold mb-2">Team</h3>
               <p className="text-2xl font-bold text-primary">{projectStats.teamName}</p>
               <p className="text-sm text-gray-500 mt-2">{projectStats.projectTitle}</p>
+              <p className="text-xs text-gray-400 mt-1">Batch: {projectStats.batch}</p> {/* Add this line */}
             </div>
 
             <div className="bg-white rounded-lg shadow p-6">
