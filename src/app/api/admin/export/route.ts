@@ -79,23 +79,144 @@ const COLUMN_MAPPING: Record<string, { label: string; getValue: (data: any) => s
     label: 'Total Members', 
     getValue: (data) => data.members.length.toString() 
   },
-  
-  // Project fields
-  projectDescription: { 
-    label: 'Project Description', 
-    getValue: (data) => data.team.project?.description || 'No Description' 
+};
+
+// Helper function to extract metadata from proposal
+const extractProposalMetadata = (proposal: any): any => {
+  try {
+    // First try to extract from content field (HTML comment)
+    const metadataMatch = proposal.content.match(/<!-- METADATA:(.*?) -->/);
+    if (metadataMatch) {
+      return JSON.parse(metadataMatch[1]);
+    } else if (proposal.link && proposal.link.startsWith('{')) {
+      // Fallback: try to parse link field as JSON
+      return JSON.parse(proposal.link);
+    }
+    return {};
+  } catch {
+    return {};
+  }
+};
+
+// Merge all column mappings
+Object.assign(COLUMN_MAPPING, {
+  // Additional Proposal fields
+  proposalTitle: { 
+    label: 'Proposal Title', 
+    getValue: (data) => data.team.proposals.length > 0
+      ? data.team.proposals.map((p: any) => p.title).join('; ')
+      : 'No proposals'
   },
-  projectName: { 
-    label: 'Project Name', 
-    getValue: (data) => data.team.project?.name || 'No Project' 
+  proposalDescription: { 
+    label: 'Proposal Description', 
+    getValue: (data) => data.team.proposals.length > 0
+      ? data.team.proposals.map((p: any) => p.description || 'No description').join('; ')
+      : 'No proposals'
   },
-  projectTheme: { 
-    label: 'Project Theme', 
-    getValue: (data) => data.team.project?.theme?.name || 'No Theme' 
+  proposalContent: { 
+    label: 'Proposal Content', 
+    getValue: (data) => data.team.proposals.length > 0
+      ? data.team.proposals.map((p: any) => p.content || 'No content').join('; ')
+      : 'No proposals'
   },
-  projectCode: { 
-    label: 'Project Code', 
-    getValue: (data) => data.team.project?.code || 'N/A' 
+  proposalState: { 
+    label: 'Proposal State', 
+    getValue: (data) => data.team.proposals.length > 0
+      ? data.team.proposals.map((p: any) => p.state || 'No state').join('; ')
+      : 'No proposals'
+  },
+  proposalCategory: { 
+    label: 'Proposal Category', 
+    getValue: (data) => data.team.proposals.length > 0
+      ? data.team.proposals.map((p: any) => {
+          const metadata = extractProposalMetadata(p);
+          return metadata.category || 'No category';
+        }).join('; ')
+      : 'No proposals'
+  },
+  proposalLocationState: { 
+    label: 'Proposal State/Location', 
+    getValue: (data) => data.team.proposals.length > 0
+      ? data.team.proposals.map((p: any) => {
+          const metadata = extractProposalMetadata(p);
+          return metadata.state || 'No state';
+        }).join('; ')
+      : 'No proposals'
+  },
+  proposalDistrict: { 
+    label: 'Proposal District', 
+    getValue: (data) => data.team.proposals.length > 0
+      ? data.team.proposals.map((p: any) => {
+          const metadata = extractProposalMetadata(p);
+          return metadata.district || 'No district';
+        }).join('; ')
+      : 'No proposals'
+  },
+  proposalCity: { 
+    label: 'Proposal City', 
+    getValue: (data) => data.team.proposals.length > 0
+      ? data.team.proposals.map((p: any) => {
+          const metadata = extractProposalMetadata(p);
+          return metadata.city || 'No city';
+        }).join('; ')
+      : 'No proposals'
+  },
+  proposalPlaceVisited: { 
+    label: 'Place Visited', 
+    getValue: (data) => data.team.proposals.length > 0
+      ? data.team.proposals.map((p: any) => {
+          const metadata = extractProposalMetadata(p);
+          return metadata.placeVisited || 'No place visited';
+        }).join('; ')
+      : 'No proposals'
+  },
+  proposalTravelTime: { 
+    label: 'Travel Time', 
+    getValue: (data) => data.team.proposals.length > 0
+      ? data.team.proposals.map((p: any) => {
+          const metadata = extractProposalMetadata(p);
+          return metadata.travelTime || 'No travel time';
+        }).join('; ')
+      : 'No proposals'
+  },
+  proposalExecutionTime: { 
+    label: 'Execution Time', 
+    getValue: (data) => data.team.proposals.length > 0
+      ? data.team.proposals.map((p: any) => {
+          const metadata = extractProposalMetadata(p);
+          return metadata.executionTime || 'No execution time';
+        }).join('; ')
+      : 'No proposals'
+  },
+  proposalCompletionDate: { 
+    label: 'Completion Date', 
+    getValue: (data) => data.team.proposals.length > 0
+      ? data.team.proposals.map((p: any) => {
+          const metadata = extractProposalMetadata(p);
+          return metadata.completionDate ? new Date(metadata.completionDate).toLocaleDateString() : 'No completion date';
+        }).join('; ')
+      : 'No proposals'
+  },
+  proposalGdriveLink: { 
+    label: 'Google Drive Link', 
+    getValue: (data) => data.team.proposals.length > 0
+      ? data.team.proposals.map((p: any) => {
+          // Google Drive link is stored directly in the link field, not in metadata
+          return p.link && !p.link.startsWith('{') ? p.link : 'No Google Drive link';
+        }).join('; ')
+      : 'No proposals'
+  },
+  proposalAttachment: { 
+    label: 'Proposal Attachment', 
+    getValue: (data) => data.team.proposals.length > 0
+      ? data.team.proposals.map((p: any) => p.attachment || 'No attachment').join('; ')
+      : 'No proposals'
+  },
+  proposalRemarks: { 
+    label: 'Proposal Remarks', 
+    getValue: (data) => data.team.proposals.length > 0
+      ? data.team.proposals.map((p: any) => p.remarks || 'No remarks').join('; ')
+      : 'No proposals'
   },
   proposalStatus: { 
     label: 'Proposal Status', 
@@ -103,17 +224,13 @@ const COLUMN_MAPPING: Record<string, { label: string; getValue: (data: any) => s
       ? data.team.proposals.map((p: any) => `${p.title}: ${p.state}`).join('; ')
       : 'No proposals'
   },
-  proposalCount: { 
-    label: 'Proposal Count', 
-    getValue: (data) => data.team.proposals.length.toString() 
-  },
   proposalSubmittedAt: { 
-    label: 'Latest Proposal Date', 
+    label: 'Proposal Submitted Date', 
     getValue: (data) => data.team.proposals.length > 0 
       ? data.team.proposals[data.team.proposals.length - 1].created_at.toLocaleDateString()
       : 'No proposals'
   },
-};
+});
 
 export async function POST(request: Request) {
   try {
@@ -166,8 +283,13 @@ export async function POST(request: Request) {
         proposals: {
           select: {
             title: true,
+            description: true,
+            content: true,
             state: true,
-            created_at: true
+            link: true,
+            created_at: true,
+            attachment: true,
+            remarks: true
           },
           orderBy: {
             created_at: 'asc'
@@ -283,8 +405,13 @@ export async function GET() {
         proposals: {
           select: {
             title: true,
+            description: true,
+            content: true,
             state: true,
-            created_at: true
+            link: true,
+            created_at: true,
+            attachment: true,
+            remarks: true
           }
         }
       },
