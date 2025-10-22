@@ -62,18 +62,26 @@ const COLUMN_MAPPING: Record<string, { label: string; getValue: (data: any) => s
     getValue: (data) => data.team.lead?.phone || 'N/A' 
   },
   
-  // Team member fields - Combined
+  // Team member fields - One per line
   memberNames: { 
     label: 'Team Members', 
-    getValue: (data) => data.members.map((m: any) => m.name).join('; ') || 'No Members' 
+    getValue: (data) => data.members.map((m: any) => m.name).join('\n') || 'No Members' 
   },
   memberEmails: { 
     label: 'Member Emails', 
-    getValue: (data) => data.members.map((m: any) => m.email).join('; ') || 'N/A' 
+    getValue: (data) => data.members.map((m: any) => m.email).join('\n') || 'N/A' 
   },
   memberRoles: { 
     label: 'Member Roles', 
-    getValue: (data) => data.members.map((m: any) => `${m.name}: ${m.role}`).join('; ') || 'N/A' 
+    getValue: (data) => data.members.map((m: any) => m.role).join('\n') || 'N/A' 
+  },
+  memberRollNumbers: { 
+    label: 'Member Roll Numbers', 
+    getValue: (data) => data.members.map((m: any) => m.rollNumber || 'N/A').join('\n') || 'N/A' 
+  },
+  memberBatches: { 
+    label: 'Member Batches', 
+    getValue: (data) => data.members.map((m: any) => m.batch || 'N/A').join('\n') || 'N/A' 
   },
   memberCount: { 
     label: 'Total Members', 
@@ -100,29 +108,23 @@ const extractProposalMetadata = (proposal: any): any => {
 
 // Merge all column mappings
 Object.assign(COLUMN_MAPPING, {
-  // Additional Proposal fields
+  // Additional Proposal fields - One per line
   proposalTitle: { 
     label: 'Proposal Title', 
     getValue: (data) => data.team.proposals.length > 0
-      ? data.team.proposals.map((p: any) => p.title).join('; ')
+      ? data.team.proposals.map((p: any) => p.title).join('\n')
       : 'No proposals'
   },
   proposalDescription: { 
     label: 'Proposal Description', 
     getValue: (data) => data.team.proposals.length > 0
-      ? data.team.proposals.map((p: any) => p.description || 'No description').join('; ')
+      ? data.team.proposals.map((p: any) => p.description || 'No description').join('\n')
       : 'No proposals'
   },
-  proposalContent: { 
-    label: 'Proposal Content', 
+  proposalStatus: { 
+    label: 'Proposal Status', 
     getValue: (data) => data.team.proposals.length > 0
-      ? data.team.proposals.map((p: any) => p.content || 'No content').join('; ')
-      : 'No proposals'
-  },
-  proposalState: { 
-    label: 'Proposal State', 
-    getValue: (data) => data.team.proposals.length > 0
-      ? data.team.proposals.map((p: any) => p.state || 'No state').join('; ')
+      ? data.team.proposals.map((p: any) => p.status || 'No status').join('\n')
       : 'No proposals'
   },
   proposalCategory: { 
@@ -131,7 +133,7 @@ Object.assign(COLUMN_MAPPING, {
       ? data.team.proposals.map((p: any) => {
           const metadata = extractProposalMetadata(p);
           return metadata.category || 'No category';
-        }).join('; ')
+        }).join('\n')
       : 'No proposals'
   },
   proposalLocationState: { 
@@ -140,7 +142,7 @@ Object.assign(COLUMN_MAPPING, {
       ? data.team.proposals.map((p: any) => {
           const metadata = extractProposalMetadata(p);
           return metadata.state || 'No state';
-        }).join('; ')
+        }).join('\n')
       : 'No proposals'
   },
   proposalDistrict: { 
@@ -149,7 +151,7 @@ Object.assign(COLUMN_MAPPING, {
       ? data.team.proposals.map((p: any) => {
           const metadata = extractProposalMetadata(p);
           return metadata.district || 'No district';
-        }).join('; ')
+        }).join('\n')
       : 'No proposals'
   },
   proposalCity: { 
@@ -158,7 +160,7 @@ Object.assign(COLUMN_MAPPING, {
       ? data.team.proposals.map((p: any) => {
           const metadata = extractProposalMetadata(p);
           return metadata.city || 'No city';
-        }).join('; ')
+        }).join('\n')
       : 'No proposals'
   },
   proposalPlaceVisited: { 
@@ -167,7 +169,7 @@ Object.assign(COLUMN_MAPPING, {
       ? data.team.proposals.map((p: any) => {
           const metadata = extractProposalMetadata(p);
           return metadata.placeVisited || 'No place visited';
-        }).join('; ')
+        }).join('\n')
       : 'No proposals'
   },
   proposalTravelTime: { 
@@ -176,7 +178,7 @@ Object.assign(COLUMN_MAPPING, {
       ? data.team.proposals.map((p: any) => {
           const metadata = extractProposalMetadata(p);
           return metadata.travelTime || 'No travel time';
-        }).join('; ')
+        }).join('\n')
       : 'No proposals'
   },
   proposalExecutionTime: { 
@@ -185,7 +187,7 @@ Object.assign(COLUMN_MAPPING, {
       ? data.team.proposals.map((p: any) => {
           const metadata = extractProposalMetadata(p);
           return metadata.executionTime || 'No execution time';
-        }).join('; ')
+        }).join('\n')
       : 'No proposals'
   },
   proposalCompletionDate: { 
@@ -194,34 +196,27 @@ Object.assign(COLUMN_MAPPING, {
       ? data.team.proposals.map((p: any) => {
           const metadata = extractProposalMetadata(p);
           return metadata.completionDate ? new Date(metadata.completionDate).toLocaleDateString() : 'No completion date';
-        }).join('; ')
+        }).join('\n')
       : 'No proposals'
   },
-  proposalGdriveLink: { 
-    label: 'Google Drive Link', 
+  proposalVideoLink: { 
+    label: 'Video Link', 
     getValue: (data) => data.team.proposals.length > 0
       ? data.team.proposals.map((p: any) => {
-          // Google Drive link is stored directly in the link field, not in metadata
-          return p.link && !p.link.startsWith('{') ? p.link : 'No Google Drive link';
-        }).join('; ')
+          return p.link && !p.link.startsWith('{') ? p.link : 'No Video link';
+        }).join('\n')
       : 'No proposals'
   },
   proposalAttachment: { 
     label: 'Proposal Attachment', 
     getValue: (data) => data.team.proposals.length > 0
-      ? data.team.proposals.map((p: any) => p.attachment || 'No attachment').join('; ')
+      ? data.team.proposals.map((p: any) => p.attachment || 'No attachment').join('\n')
       : 'No proposals'
   },
   proposalRemarks: { 
     label: 'Proposal Remarks', 
     getValue: (data) => data.team.proposals.length > 0
-      ? data.team.proposals.map((p: any) => p.remarks || 'No remarks').join('; ')
-      : 'No proposals'
-  },
-  proposalStatus: { 
-    label: 'Proposal Status', 
-    getValue: (data) => data.team.proposals.length > 0
-      ? data.team.proposals.map((p: any) => `${p.title}: ${p.state}`).join('; ')
+      ? data.team.proposals.map((p: any) => p.remarks || 'No remarks').join('\n')
       : 'No proposals'
   },
   proposalSubmittedAt: { 
@@ -236,27 +231,22 @@ export async function POST(request: Request) {
   try {
     const session = await auth();
 
-    // Check if user is authenticated and is an admin
     if (!session?.user?.isAdmin) {
       return new NextResponse('Unauthorized', { status: 401 });
     }
 
-    // Get selected columns from request body
     const body = await request.json();
     const selectedColumns: string[] = body.columns || [];
 
-    // Validate that at least one column is selected
     if (selectedColumns.length === 0) {
       return new NextResponse('No columns selected', { status: 400 });
     }
 
-    // Validate all selected columns exist
     const invalidColumns = selectedColumns.filter(col => !COLUMN_MAPPING[col]);
     if (invalidColumns.length > 0) {
       return new NextResponse(`Invalid columns: ${invalidColumns.join(', ')}`, { status: 400 });
     }
 
-    // Fetch all teams with their related data
     const teams = await prisma.team.findMany({
       include: {
         mentor: {
@@ -272,7 +262,6 @@ export async function POST(request: Request) {
             firstName: true,
             lastName: true,
             email: true,
-           
           }
         },
         project: {
@@ -301,7 +290,6 @@ export async function POST(request: Request) {
       }
     });
 
-    // Get members for all teams from TeamMember table
     const allTeamIds = teams.map(team => team.id);
     const allMembers = await prisma.teamMember.findMany({
       where: {
@@ -312,11 +300,12 @@ export async function POST(request: Request) {
         teamId: true,
         name: true,
         email: true,
-        role: true
+        role: true,
+        rollNumber: true
+       
       }
     });
 
-    // Group members by teamId
     const membersByTeam: Record<string, typeof allMembers> = {};
     for (const member of allMembers) {
       if (!membersByTeam[member.teamId]) {
@@ -325,12 +314,10 @@ export async function POST(request: Request) {
       membersByTeam[member.teamId].push(member);
     }
 
-    // Transform data for CSV with only selected columns
     const csvData = teams.map(team => {
       const teamMembers = membersByTeam[team.id] || [];
       const data = { team, members: teamMembers };
       
-      // Build row with only selected columns
       const row: Record<string, string> = {};
       for (const columnId of selectedColumns) {
         const columnConfig = COLUMN_MAPPING[columnId];
@@ -342,17 +329,14 @@ export async function POST(request: Request) {
       return row;
     });
 
-    // Build fields configuration for CSV parser
     const fields = selectedColumns.map(columnId => ({
       label: COLUMN_MAPPING[columnId].label,
       value: columnId
     }));
 
-    // Convert to CSV
     const parser = new Parser({ fields });
     const csv = parser.parse(csvData);
 
-    // Create blob and return with proper headers
     const timestamp = new Date().toISOString().split('T')[0];
     const filename = `teams_export_${timestamp}.csv`;
     
@@ -367,17 +351,14 @@ export async function POST(request: Request) {
   }
 }
 
-// Keep GET method for backward compatibility
 export async function GET() {
   try {
     const session = await auth();
 
-    // Check if user is authenticated and is an admin
     if (!session?.user?.isAdmin) {
       return new NextResponse('Unauthorized', { status: 401 });
     }
 
-    // Fetch all teams with their related data (matching admin teams route)
     const teams = await prisma.team.findMany({
       include: {
         mentor: {
@@ -386,7 +367,6 @@ export async function GET() {
             firstName: true,
             lastName: true,
             email: true,
-          
           }
         },
         lead: {
@@ -394,7 +374,6 @@ export async function GET() {
             firstName: true,
             lastName: true,
             email: true,
-          
           }
         },
         project: {
@@ -420,7 +399,6 @@ export async function GET() {
       }
     });
 
-    // Get members for all teams from TeamMember table
     const allTeamIds = teams.map(team => team.id);
     const allMembers = await prisma.teamMember.findMany({
       where: {
@@ -431,11 +409,12 @@ export async function GET() {
         teamId: true,
         name: true,
         email: true,
-        role: true
+        role: true,
+        rollNumber: true,
+ 
       }
     });
 
-    // Group members by teamId
     const membersByTeam: Record<string, typeof allMembers> = {};
     for (const member of allMembers) {
       if (!membersByTeam[member.teamId]) {
@@ -444,7 +423,6 @@ export async function GET() {
       membersByTeam[member.teamId].push(member);
     }
 
-    // Transform data for CSV
     const csvData = teams.map(team => {
       const teamMembers = membersByTeam[team.id] || [];
       
@@ -454,43 +432,31 @@ export async function GET() {
         projectTitle: team.projectTitle || 'No Title',
         projectPillar: team.projectPillar || 'N/A',
         batch: team.batch || 'N/A',
-        // Mentor information
         mentorName: team.mentor ? `${team.mentor.firstName} ${team.mentor.lastName}` : 'No Mentor',
         mentorEmail: team.mentor?.email || 'N/A',
-        // Lead information
         leadName: team.lead ? `${team.lead.firstName} ${team.lead.lastName}` : 'No Lead',
         leadEmail: team.lead?.email || 'N/A',
-        // Team members
         memberCount: teamMembers.length,
-        members: teamMembers
-          .map(m => m.name)
-          .join('; ') || 'No Members',
-        memberEmails: teamMembers
-          .map(m => m.email)
-          .join('; ') || 'N/A',
-        memberRoles: teamMembers
-          .map(m => `${m.name}: ${m.role}`)
-          .join('; ') || 'N/A',
-        // Proposal information
+        members: teamMembers.map(m => m.name).join('\n') || 'No Members',
+        memberEmails: teamMembers.map(m => m.email).join('\n') || 'N/A',
+        memberRoles: teamMembers.map(m => m.role).join('\n') || 'N/A',
+        memberRollNumbers: teamMembers.map(m => m.rollNumber || 'N/A').join('\n') || 'N/A',
         proposalCount: team.proposals.length,
         proposalStatus: team.proposals.length > 0
-          ? team.proposals.map(p => `${p.title}: ${p.state}`).join('; ')
+          ? team.proposals.map(p => `${p.title}: ${p.state}`).join('\n')
           : 'No proposals',
         latestProposalDate: team.proposals.length > 0 
           ? team.proposals[team.proposals.length - 1].created_at.toLocaleDateString()
           : 'No proposals',
-        // Project information
         projectName: team.project?.name || 'No Project',
         projectTheme: team.project?.theme?.name || 'No Theme',
         projectDescription: team.project?.description || 'No Description',
         projectCode: team.project?.code || 'N/A',
-        // Timestamps
         createdAt: team.createdAt.toLocaleDateString(),
         updatedAt: team.updatedAt.toLocaleDateString(),
       };
     });
 
-    // Convert to CSV with expanded fields
     const parser = new Parser({
       fields: [
         { label: 'Team Number', value: 'teamNumber' },
@@ -506,6 +472,8 @@ export async function GET() {
         { label: 'Members', value: 'members' },
         { label: 'Member Emails', value: 'memberEmails' },
         { label: 'Member Roles', value: 'memberRoles' },
+        { label: 'Member Roll Numbers', value: 'memberRollNumbers' },
+        { label: 'Member Batches', value: 'memberBatches' },
         { label: 'Proposal Count', value: 'proposalCount' },
         { label: 'Proposal Status', value: 'proposalStatus' },
         { label: 'Latest Proposal Date', value: 'latestProposalDate' },
@@ -520,7 +488,6 @@ export async function GET() {
     
     const csv = parser.parse(csvData);
 
-    // Return CSV file with timestamp in filename
     const timestamp = new Date().toISOString().split('T')[0];
     const filename = `teams_export_${timestamp}.csv`;
     

@@ -24,11 +24,10 @@ const AVAILABLE_COLUMNS = [
   { id: 'memberEmails', label: 'Member Emails (All)', category: 'Team Members' },
   { id: 'memberRoles', label: 'Member Roles (All)', category: 'Team Members' },
   { id: 'memberCount', label: 'Total Member Count', category: 'Team Members' },
-  
+  { id: 'memberRollNumbers', label: 'Member Roll Numbers (All)', category: 'Team Members' },
   { id: 'proposalTitle', label: 'Proposal Title', category: 'Proposal Details' },
   { id: 'proposalDescription', label: 'Proposal Description', category: 'Proposal Details' },
-  { id: 'proposalContent', label: 'Proposal Content', category: 'Proposal Details' },
-  { id: 'proposalState', label: 'Proposal State', category: 'Proposal Details' },
+  { id: 'proposalStatus', label: 'Proposal Status', category: 'Proposal Details' },
   { id: 'proposalCategory', label: 'Proposal Category', category: 'Proposal Details' },
   { id: 'proposalLocationState', label: 'Proposal State/Location', category: 'Proposal Details' },
   { id: 'proposalDistrict', label: 'Proposal District', category: 'Proposal Details' },
@@ -37,10 +36,9 @@ const AVAILABLE_COLUMNS = [
   { id: 'proposalTravelTime', label: 'Travel Time', category: 'Proposal Details' },
   { id: 'proposalExecutionTime', label: 'Execution Time', category: 'Proposal Details' },
   { id: 'proposalCompletionDate', label: 'Completion Date', category: 'Proposal Details' },
-  { id: 'proposalGdriveLink', label: 'Google Drive Link', category: 'Proposal Details' },
+  { id: 'proposalVideoLink', label: 'Video Link', category: 'Proposal Details' },
   { id: 'proposalAttachment', label: 'Proposal Attachment', category: 'Proposal Details' },
   { id: 'proposalRemarks', label: 'Proposal Remarks', category: 'Proposal Details' },
-  { id: 'proposalStatus', label: 'Proposal Status', category: 'Proposal Details' },
   { id: 'proposalSubmittedAt', label: 'Proposal Submitted Date', category: 'Proposal Details' },
 ];
 
