@@ -72,7 +72,8 @@ export default function UpdateTeamForm({
     { label: 'ELC', value: 'ELC', range: [124, 132] },
     { label: 'EEE', value: 'EEE', range: [133, 140] },
     { label: 'ME', value: 'ME', range: [141, 150] },
-    { label: 'RAE', value: 'RAE', range: [151, 160] }
+    { label: 'RAE', value: 'RAE', range: [151, 160] },
+    { label: 'TEST', value: 'TEST', range: [163, 163] }
   ]);
   
   const [availableTeamNumbers, setAvailableTeamNumbers] = useState<string[]>([]);
