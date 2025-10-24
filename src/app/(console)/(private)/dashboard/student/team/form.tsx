@@ -148,7 +148,7 @@ const BATCH_OPTIONS: BatchOption[] = [
   { label: 'EEE', value: 'EEE', range: [133, 140] },
   { label: 'ME', value: 'ME', range: [141, 150] },
   { label: 'RAE', value: 'RAE', range: [151, 160] },
-  { label: 'TEXT', value: 'TEXT', range: [163, 163] }
+  { label: 'TEST', value: 'TEST', range: [163, 163] }
 ];
 
 const PROJECT_PILLAR_LABELS = {
