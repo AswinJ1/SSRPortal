@@ -3,7 +3,9 @@ import { writeFile, mkdir } from 'fs/promises';
 import { join } from 'path';
 import { auth } from '@/lib/auth';
 
-const UPLOAD_DIR = join(process.cwd(), 'public', 'uploads');
+// const UPLOAD_DIR = join(process.cwd(), 'public', 'uploads');
+const UPLOAD_DIR = '/home/azureuser/uploads'
+
 
 export async function POST(req: Request) {
   try {
