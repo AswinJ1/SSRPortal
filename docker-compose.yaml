@@ -1,0 +1,30 @@
+services:
+  app:
+    image: aswinj/ssrconnect:latest
+    container_name: ssrportal-web
+    env_file:
+      - .env            # loads variables from your .env file
+    environment:
+      #  You can still override or add more here if needed
+      NODE_ENV: production
+    ports:
+      - "3000:3000"
+    depends_on:
+      - postgres
+    restart: always
+
+  postgres:
+    image: postgres:alpine
+    container_name: ssrportal-db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: qwerty
+      POSTGRES_DB: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    restart: always
+
+volumes:
+  pgdata:
