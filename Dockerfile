@@ -30,9 +30,8 @@ RUN \
 FROM base AS runner
 WORKDIR /app
 
-RUN apk add --no-cache openssl libstdc++ && \
-    ln -s /lib/libssl.so.3 /lib/libssl.so.1.1 && \
-    ln -s /lib/libcrypto.so.3 /lib/libcrypto.so.1.1
+RUN apk add --no-cache openssl
+
 
 ENV NODE_ENV=production
 RUN addgroup --system --gid 1001 nodejs && adduser --system --uid 1001 nextjs
