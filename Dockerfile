@@ -1,5 +1,5 @@
 # ---------- Base Image ----------
-FROM node:25-bookworm-slim AS base
+FROM node:25-alpine AS base
 RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
