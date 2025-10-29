@@ -1,6 +1,6 @@
 services:
   app:
-    image: aswinj/ssrconnect:latest
+    image: aswinj1/ssrconnect:latest
     container_name: ssrportal-web
     env_file:
       - .env            # loads variables from your .env file
