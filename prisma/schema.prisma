@@ -1,6 +1,6 @@
-// prisma/schema.prisma
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl"]
 }
 
 datasource db {
@@ -36,8 +36,8 @@ model Session {
 
 model User {
   id            String       @id @default(cuid())
-  firstName     String?
-  lastName      String?
+  firstName     String
+  lastName      String
   password      String
   email         String       @unique
   rollno        String?      @unique
@@ -115,8 +115,6 @@ model Proposal {
   teamCode          String?
   author            User      @relation(fields: [authorId], references: [id])
   Team              Team?     @relation(fields: [teamCode], references: [id])
-
-  @@index([teamCode]) // faster team filtering
 }
 
 model Project {
