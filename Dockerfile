@@ -34,7 +34,10 @@ FROM base AS runner
 WORKDIR /app
 
 # OpenSSL 3 only (Prisma 6.18.0 supports it natively)
-RUN apk add --no-cache openssl
+RUN apk update \
+	&& apk add --no-cache openssl\
+	&& rm -rf /var/lib/apt/lists/* \
+	&& rm -rf /var/cache/apk/*
 
 ENV NODE_ENV=production
 RUN addgroup --system --gid 1001 nodejs && adduser --system --uid 1001 nextjs
