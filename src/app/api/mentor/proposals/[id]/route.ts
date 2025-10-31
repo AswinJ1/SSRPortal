@@ -75,3 +75,113 @@ export async function PUT(
     );
   }
 }
+export async function GET(
+  req: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const session = await getServerSession(authOptions);
+
+    if (!session || !session.user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const mentor = await prisma.user.findUnique({
+      where: { email: session.user.email as string },
+      include: { mentees: true },
+    });
+
+    if (!mentor || mentor.role !== "MENTOR") {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+
+    const proposalId = parseInt(params.id);
+
+    // Get proposal with related team and author
+    const proposal = await prisma.proposal.findUnique({
+      where: { id: proposalId },
+      select: {
+        id: true,
+        title: true,
+        description: true,
+        content: true,
+        attachment: true,
+        link: true,
+        state: true,
+        remarks: true,
+        created_at: true,
+        updated_at: true,
+        remark_updated_at: true,
+        author: {
+          select: {
+            firstName: true,
+            lastName: true,
+            email: true,
+            rollno: true,
+          },
+        },
+        Team: {
+          select: {
+            id: true,
+            projectTitle: true,
+            teamNumber: true,
+            batch: true,
+            members: {
+              select: {
+                name: true,
+                email: true,
+                rollNumber: true,
+                role: true,
+                user: {
+                  select: {
+                    firstName: true,
+                    lastName: true,
+                    email: true,
+                    rollno: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!proposal) {
+      return NextResponse.json({ error: "Proposal not found" }, { status: 404 });
+    }
+
+    // Check if the mentor is assigned to this team
+    const isAssignedMentor = mentor.mentees.some(
+      (team) => team.id === proposal.Team.id
+    );
+
+    if (!isAssignedMentor) {
+      return NextResponse.json(
+        { error: "You are not authorized to view this proposal" },
+        { status: 403 }
+      );
+    }
+
+    // Extract metadata if present in the content field
+    let metadata = {};
+    try {
+      const metadataMatch = proposal.content.match(/<!-- METADATA:(.*?) -->/);
+      if (metadataMatch) {
+        metadata = JSON.parse(metadataMatch[1]);
+      }
+    } catch (error) {
+      console.error("Error parsing metadata for proposal", proposal.id, error);
+    }
+
+    return NextResponse.json({
+      data: { ...proposal, metadata },
+    });
+  } catch (error) {
+    console.error("Error fetching proposal:", error);
+    return NextResponse.json(
+      { error: "Failed to fetch proposal" },
+      { status: 500 }
+    );
+  }
+}

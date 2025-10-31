@@ -7,6 +7,8 @@ services:
     environment:
       #  You can still override or add more here if needed
       NODE_ENV: production
+    volumes:
+      - uploads-data:/app/public/uploads
     ports:
       - "3000:3000"
     depends_on:
@@ -25,6 +27,24 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data
     restart: always
+  caddy:
+    image: caddy:2
+    container_name: ssrportal-caddy
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - uploads-data:/uploads  # Add this to share uploads with app
+      - caddy-data:/data
+      - caddy-config:/config
+    depends_on:
+      - app
 
 volumes:
   pgdata:
+  caddy-data:
+  caddy-config:
+  uploads-data:  # Add this shared volume
+
