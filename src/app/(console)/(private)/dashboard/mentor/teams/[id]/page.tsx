@@ -29,12 +29,27 @@ type Project = {
   theme?: ProjectTheme;
 };
 
+type ProposalAuthor = {
+  firstName: string;
+  lastName: string;
+  email: string;
+  rollno: string;
+};
+
 type Proposal = {
-  id: string;
+  id: number;
   title: string;
-  status: string;
+  state: string;
   description: string;
   content?: string;
+  attachment?: string;
+  link?: string;
+  remarks?: string;
+  created_at: Date;
+  updated_at: Date;
+  remark_updated_at?: Date;
+  author: ProposalAuthor;
+  metadata?: any;
 };
 
 type Team = {
@@ -50,7 +65,7 @@ type Team = {
   lead: TeamLead | null;
   members: TeamMember[];
   project?: Project;
-  proposals: Proposal[];
+  proposals: { id: number }[];
   batch: string;
 };
 
@@ -58,7 +73,9 @@ export default function TeamDetailPage() {
   const params = useParams();
   const router = useRouter();
   const [team, setTeam] = useState<Team | null>(null);
+  const [proposals, setProposals] = useState<Proposal[]>([]);
   const [loading, setLoading] = useState(true);
+  const [proposalsLoading, setProposalsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   // Helper function to convert batch codes to readable names
@@ -108,7 +125,6 @@ export default function TeamDetailPage() {
       }
 
       const data = await response.json();
-      console.log('API Response batch:', data.batch); // Debug log
 
       const transformedTeam: Team = {
         id: data.id,
@@ -127,12 +143,48 @@ export default function TeamDetailPage() {
         proposals: data.proposals || []
       };
 
-      console.log('Transformed batch:', transformedTeam.batch); // Debug log
       setTeam(transformedTeam);
+
+      // Fetch detailed proposal data for each proposal
+      if (transformedTeam.proposals.length > 0) {
+        await fetchProposals(transformedTeam.proposals);
+      } else {
+        setProposals([]);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchProposals = async (proposalRefs: { id: number }[]) => {
+    try {
+      setProposalsLoading(true);
+      
+      // Fetch each proposal using the API endpoint
+      const proposalPromises = proposalRefs.map(async (ref) => {
+        const response = await fetch(`/api/mentor/proposals/${ref.id}`);
+        
+        if (!response.ok) {
+          console.error(`Failed to fetch proposal ${ref.id}`);
+          return null;
+        }
+        
+        const result = await response.json();
+        return result.data;
+      });
+
+      const fetchedProposals = await Promise.all(proposalPromises);
+      
+      // Filter out any null values from failed requests
+      const validProposals = fetchedProposals.filter((p): p is Proposal => p !== null);
+      
+      setProposals(validProposals);
+    } catch (err) {
+      console.error('Error fetching proposals:', err);
+    } finally {
+      setProposalsLoading(false);
     }
   };
 
@@ -196,12 +248,10 @@ export default function TeamDetailPage() {
           <div className="flex justify-between items-start mb-4">
             <div>
               <h2 className="text-xl font-semibold">Team {team.teamNumber}</h2>
-              {/* Update batch display to use the helper function */}
               <div className="mt-1">
                 <span className="text-lg font-medium text-blue-600">
                   Batch: {getBatchDisplayName(team.batch)}
                 </span>
-             
               </div>
               <p className="text-gray-600 mt-2">{team.projectTitle}</p>
               <p className="text-sm text-gray-500">Project Pillar: {team.projectPillar}</p>
@@ -283,31 +333,82 @@ export default function TeamDetailPage() {
         {team.proposals.length > 0 && (
           <div className="bg-white p-6 rounded-lg shadow">
             <h2 className="text-xl font-semibold mb-4">Project Proposals</h2>
-            <div className="grid gap-4">
-              {team.proposals.map((proposal) => (
-                <div key={proposal.id} className="p-4 border rounded-lg">
-                  <p><span className="font-medium">Title:</span> {proposal.title}</p>
-                  {proposal.content && (
-                    <p><span className="font-medium">Content:</span> {proposal.content}</p>
-                  )}
-                  <p className="mt-2 text-gray-700">{proposal.description}</p>
-                  <span className={`inline-block mt-2 px-2 py-1 text-xs rounded-full ${
-                    proposal.status === 'APPROVED'
-                      ? 'bg-green-100 text-green-800'
-                      : proposal.status === 'REJECTED'
-                      ? 'bg-red-100 text-red-800'
-                      : 'bg-yellow-100 text-yellow-800'
-                  }`}>
-                    {proposal.status}
-                  </span>
-                </div>
-              ))}
-            </div>
+            
+            {proposalsLoading ? (
+              <div className="flex justify-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+              </div>
+            ) : (
+              <div className="grid gap-4">
+                {proposals.map((proposal) => (
+                  <div key={proposal.id} className="p-4 border rounded-lg">
+                    <div className="flex justify-between items-start mb-2">
+                      <p className="font-medium text-lg">{proposal.title}</p>
+                      <span className={`px-2 py-1 text-xs rounded-full ${
+                        proposal.state === 'APPROVED'
+                          ? 'bg-green-100 text-green-800'
+                          : proposal.state === 'REJECTED'
+                          ? 'bg-red-100 text-red-800'
+                          : 'bg-yellow-100 text-yellow-800'
+                      }`}>
+                        {proposal.state}
+                      </span>
+                    </div>
+                    
+                    <p className="text-sm text-gray-600 mb-2">
+                      By: {proposal.author.firstName} {proposal.author.lastName} ({proposal.author.rollno})
+                    </p>
+                    
+                    <p className="text-gray-700 mb-2">{proposal.description}</p>
+                    
+                    {proposal.link && (
+                      <p className="text-sm">
+                        <span className="font-medium">Link:</span>{' '}
+                        <a 
+                          href={proposal.link} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="text-blue-600 hover:underline"
+                        >
+                          {proposal.link}
+                        </a>
+                      </p>
+                    )}
+                    
+                    {proposal.attachment && (
+                      <p className="text-sm">
+                        <span className="font-medium">Attachment:</span>{' '}
+                        <a 
+                          href={proposal.attachment} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="text-blue-600 hover:underline"
+                        >
+                          View File
+                        </a>
+                      </p>
+                    )}
+                    
+                    {proposal.remarks && (
+                      <div className="mt-3 p-3 bg-gray-50 rounded">
+                        <p className="text-sm font-medium text-gray-700">Remarks:</p>
+                        <p className="text-sm text-gray-600">{proposal.remarks}</p>
+                      </div>
+                    )}
+                    
+                    <div className="mt-2 text-xs text-gray-500">
+                      <p>Created: {new Date(proposal.created_at).toLocaleString()}</p>
+                      {proposal.remark_updated_at && (
+                        <p>Last reviewed: {new Date(proposal.remark_updated_at).toLocaleString()}</p>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
       </div>
     </div>
   );
 }
-
-
