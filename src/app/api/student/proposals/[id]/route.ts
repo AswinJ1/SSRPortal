@@ -8,6 +8,8 @@ const proposalSchema = z.object({
   description: z.string().min(100, 'Description must be at least 100 characters'),
   content: z.string().min(100, 'Content must be at least 100 characters'),
   attachment: z.string().optional(),
+  ppt_attachment: z.string().optional(),
+  poster_attachment: z.string().optional(),
 });
 
 export async function GET(
@@ -154,6 +156,9 @@ export async function PUT(
         description: body.description,
         content: body.content,
         attachment: body.attachment,
+        ppt_attachment: body.ppt_attachment,
+        poster_attachment: body.poster_attachment,
+        link: body.link,
         updated_at: new Date(),
       },
       include: {

@@ -106,6 +106,8 @@ export async function GET(
         description: true,
         content: true,
         attachment: true,
+        ppt_attachment: true,
+        poster_attachment: true,
         link: true,
         state: true,
         remarks: true,

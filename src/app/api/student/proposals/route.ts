@@ -93,6 +93,8 @@ export async function POST(req: Request) {
           description: parsed.description,
           content: parsed.content,
           attachment: parsed.attachment || '',
+          ppt_attachment: parsed.ppt_attachment || '',
+          poster_attachment: parsed.poster_attachment || '',
           link: parsed.link || '',
           state: 'DRAFT', // Reset to draft for mentor review
           // Metadata can be stored as JSON if your schema supports it
@@ -122,6 +124,8 @@ export async function POST(req: Request) {
         description: parsed.description,
         content: parsed.content,
         attachment: parsed.attachment || '',
+        ppt_attachment: parsed.ppt_attachment || '',
+        poster_attachment: parsed.poster_attachment || '',
         link: parsed.link || '',
         state: 'DRAFT',
         // Store additional metadata as JSON in metadata field if your schema supports it
@@ -186,6 +190,8 @@ export async function GET() {
         description: true,
         content: true,
         attachment: true,
+        ppt_attachment: true,
+        poster_attachment: true,
         link: true,  // Make sure link field is included for metadata
         state: true,
         remarks: true,

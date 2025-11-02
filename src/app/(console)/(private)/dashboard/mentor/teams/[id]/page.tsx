@@ -43,6 +43,8 @@ type Proposal = {
   description: string;
   content?: string;
   attachment?: string;
+  ppt_attachment?: string;
+  poster_attachment?: string;
   link?: string;
   remarks?: string;
   created_at: Date;
@@ -188,6 +190,15 @@ export default function TeamDetailPage() {
     }
   };
 
+  const handleViewProposal = (proposalId: number) => {
+    router.push(`/dashboard/mentor/proposals/${proposalId}`);
+  };
+
+  const handleEvaluateTeam = () => {
+    // Navigate to team evaluation page or open evaluation modal
+    router.push(`/dashboard/mentor/teams/evaluate/${team.id}`);
+  };
+
   useEffect(() => {
     if (params.id) {
       fetchTeamDetails();
@@ -268,13 +279,25 @@ export default function TeamDetailPage() {
           </div>
         </div>
 
-        <Link
-          href={`/dashboard/mentor/teams/edit/${team.id}`}
-          className="bg-blue-500 rounded-md w-fit px-4 py-2 flex items-center gap-2 hover:bg-blue-600 transition-colors text-white"
-        >
-          <Edit className="text-white" />
-          <span className="text-white">Edit Team</span>
-        </Link>
+        <div className="flex gap-3">
+          <button
+            onClick={handleEvaluateTeam}
+            className="bg-green-600 rounded-md w-fit px-4 py-2 flex items-center gap-2 hover:bg-green-700 transition-colors text-white"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span className="text-white">Evaluate Team</span>
+          </button>
+          
+          <Link
+            href={`/dashboard/mentor/teams/edit/${team.id}`}
+            className="bg-blue-500 rounded-md w-fit px-4 py-2 flex items-center gap-2 hover:bg-blue-600 transition-colors text-white"
+          >
+            <Edit className="text-white" />
+            <span className="text-white">Edit Team</span>
+          </Link>
+        </div>
 
         <div className="bg-white p-6 rounded-lg shadow">
           <h2 className="text-xl font-semibold mb-4">Team Members</h2>
@@ -341,66 +364,34 @@ export default function TeamDetailPage() {
             ) : (
               <div className="grid gap-4">
                 {proposals.map((proposal) => (
-                  <div key={proposal.id} className="p-4 border rounded-lg">
-                    <div className="flex justify-between items-start mb-2">
-                      <p className="font-medium text-lg">{proposal.title}</p>
-                      <span className={`px-2 py-1 text-xs rounded-full ${
-                        proposal.state === 'APPROVED'
-                          ? 'bg-green-100 text-green-800'
-                          : proposal.state === 'REJECTED'
-                          ? 'bg-red-100 text-red-800'
-                          : 'bg-yellow-100 text-yellow-800'
-                      }`}>
-                        {proposal.state}
-                      </span>
-                    </div>
-                    
-                    <p className="text-sm text-gray-600 mb-2">
-                      By: {proposal.author.firstName} {proposal.author.lastName} ({proposal.author.rollno})
-                    </p>
-                    
-                    <p className="text-gray-700 mb-2">{proposal.description}</p>
-                    
-                    {proposal.link && (
-                      <p className="text-sm">
-                        <span className="font-medium">Link:</span>{' '}
-                        <a 
-                          href={proposal.link} 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                          className="text-blue-600 hover:underline"
-                        >
-                          {proposal.link}
-                        </a>
-                      </p>
-                    )}
-                    
-                    {proposal.attachment && (
-                      <p className="text-sm">
-                        <span className="font-medium">Attachment:</span>{' '}
-                        <a 
-                          href={proposal.attachment} 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                          className="text-blue-600 hover:underline"
-                        >
-                          View File
-                        </a>
-                      </p>
-                    )}
-                    
-                    {proposal.remarks && (
-                      <div className="mt-3 p-3 bg-gray-50 rounded">
-                        <p className="text-sm font-medium text-gray-700">Remarks:</p>
-                        <p className="text-sm text-gray-600">{proposal.remarks}</p>
+                  <div key={proposal.id} className="p-4 border rounded-lg hover:shadow-sm transition-shadow">
+                    <div className="flex justify-between items-center">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-3 mb-2">
+                          <p className="font-medium text-lg">{proposal.title}</p>
+                          <span className={`px-2 py-1 text-xs rounded-full ${
+                            proposal.state === 'APPROVED'
+                              ? 'bg-green-100 text-green-800'
+                              : proposal.state === 'REJECTED'
+                              ? 'bg-red-100 text-red-800'
+                              : 'bg-yellow-100 text-yellow-800'
+                          }`}>
+                            {proposal.state}
+                          </span>
+                        </div>
+                        <p className="text-sm text-gray-600">
+                          By: {proposal.author.firstName} {proposal.author.lastName} ({proposal.author.rollno})
+                        </p>
+                        <p className="text-xs text-gray-500 mt-1">
+                          Created: {new Date(proposal.created_at).toLocaleString()}
+                        </p>
                       </div>
-                    )}
-                    
-                    <div className="mt-2 text-xs text-gray-500">
-                      <p>Created: {new Date(proposal.created_at).toLocaleString()}</p>
-                      {proposal.remark_updated_at && (
-                        <p>Last reviewed: {new Date(proposal.remark_updated_at).toLocaleString()}</p>
-                      )}
+                      <button
+                        onClick={() => handleViewProposal(proposal.id)}
+                        className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                      >
+                        View Proposal
+                      </button>
                     </div>
                   </div>
                 ))}

@@ -9,6 +9,8 @@ interface Proposal {
   description: string;
   content: string;
   attachment?: string;
+  ppt_attachment?: string;
+  poster_attachment?: string;
   link?: string;
   state: string;
   remarks?: string;
@@ -25,6 +27,7 @@ interface Proposal {
     travelTime?: string;
     executionTime?: string;
     completionDate?: string;
+    totalParticipants?: number;
   };
   author: {
     firstName: string;
@@ -207,17 +210,17 @@ export default function MentorProposalsPage() {
                         <FileText className="h-4 w-4 mr-2" />
                         Project Category
                       </h4>
-                      <p className="text-gray-600">{proposal.metadata?.category || 'Not specified'}</p>
+                      <p className="text-gray-600 break-words">{proposal.metadata?.category || 'Not specified'}</p>
                     </div>
 
                     <div>
                       <h4 className="font-semibold text-gray-700 mb-2">Description</h4>
-                      <p className="text-gray-600 text-sm">{proposal.description}</p>
+                      <p className="text-gray-600 text-sm break-words whitespace-pre-wrap">{proposal.description}</p>
                     </div>
 
                     <div>
                       <h4 className="font-semibold text-gray-700 mb-2">Content</h4>
-                      <p className="text-gray-600 text-sm">{proposal.content.replace(/\n\n<!-- METADATA:.*? -->/, '')}</p>
+                      <p className="text-gray-600 text-sm break-words whitespace-pre-wrap">{proposal.content.replace(/\n\n<!-- METADATA:.*? -->/, '')}</p>
                     </div>
                   </div>
 
@@ -229,18 +232,21 @@ export default function MentorProposalsPage() {
                         Location Details
                       </h4>
                       <div className="text-sm space-y-1">
-                        <p><span className="text-gray-500">Mode:</span> {proposal.metadata?.locationMode || 'Not specified'}</p>
+                        <p className="break-words"><span className="text-gray-500">Mode:</span> {proposal.metadata?.locationMode || 'Not specified'}</p>
                         {proposal.metadata?.state && (
-                          <p><span className="text-gray-500">State:</span> {proposal.metadata.state}</p>
+                          <p className="break-words"><span className="text-gray-500">State:</span> {proposal.metadata.state}</p>
                         )}
                         {proposal.metadata?.district && (
-                          <p><span className="text-gray-500">District:</span> {proposal.metadata.district}</p>
+                          <p className="break-words"><span className="text-gray-500">District:</span> {proposal.metadata.district}</p>
                         )}
                         {proposal.metadata?.city && (
-                          <p><span className="text-gray-500">City:</span> {proposal.metadata.city}</p>
+                          <p className="break-words"><span className="text-gray-500">City:</span> {proposal.metadata.city}</p>
                         )}
                         {proposal.metadata?.placeVisited && (
-                          <p><span className="text-gray-500">Place Visited:</span> {proposal.metadata.placeVisited}</p>
+                          <p className="break-words"><span className="text-gray-500">Place Visited:</span> {proposal.metadata.placeVisited}</p>
+                        )}
+                         {proposal.metadata?.totalParticipants && (
+                          <p className="break-words"><span className="text-gray-500">Total Participants:</span> {proposal.metadata.totalParticipants}</p>
                         )}
                       </div>
                     </div>
@@ -252,13 +258,13 @@ export default function MentorProposalsPage() {
                       </h4>
                       <div className="text-sm space-y-1">
                         {proposal.metadata?.travelTime && (
-                          <p><span className="text-gray-500">Travel Time:</span> {proposal.metadata.travelTime}</p>
+                          <p className="break-words"><span className="text-gray-500">Travel Time:</span> {proposal.metadata.travelTime}</p>
                         )}
                         {proposal.metadata?.executionTime && (
-                          <p><span className="text-gray-500">Execution Time:</span> {proposal.metadata.executionTime}</p>
+                          <p className="break-words"><span className="text-gray-500">Execution Time:</span> {proposal.metadata.executionTime}</p>
                         )}
                         {proposal.metadata?.completionDate && (
-                          <p><span className="text-gray-500">Completion Date:</span> {new Date(proposal.metadata.completionDate).toLocaleDateString()}</p>
+                          <p className="break-words"><span className="text-gray-500">Completion Date:</span> {new Date(proposal.metadata.completionDate).toLocaleDateString()}</p>
                         )}
                       </div>
                     </div>
@@ -342,6 +348,186 @@ export default function MentorProposalsPage() {
                                       <div className="flex-1 min-w-0">
                                         <p className="text-sm font-medium text-gray-900 truncate">
                                           {fileName.replace(/^\d+-/, '')} {/* Remove timestamp prefix */}
+                                        </p>
+                                        <p className="text-xs text-gray-500 uppercase">
+                                          {fileExtension} file
+                                        </p>
+                                      </div>
+                                      <div className="flex space-x-2">
+                                        <a
+                                          href={fileUrl}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          className="inline-flex items-center px-3 py-1 border border-gray-300 rounded-md text-xs font-medium text-gray-700 bg-white hover:bg-gray-50"
+                                        >
+                                          View
+                                        </a>
+                                        <a
+                                          href={fileUrl}
+                                          download
+                                          className="inline-flex items-center px-3 py-1 border border-transparent rounded-md text-xs font-medium text-white bg-blue-600 hover:bg-blue-700"
+                                        >
+                                          Download
+                                        </a>
+                                      </div>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          )}
+                          {proposal.ppt_attachment && proposal.ppt_attachment.trim() && (
+                            <div>
+                              <div className="flex items-center space-x-2 mb-2">
+                                <svg className="h-5 w-5 text-orange-500" fill="currentColor" viewBox="0 0 20 20">
+                                  <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clipRule="evenodd" />
+                                </svg>
+                                <span className="text-gray-500">PPT Files:</span>
+                              </div>
+                              <div className="grid grid-cols-1 gap-2">
+                                {proposal.ppt_attachment.split(',').filter(url => url.trim()).map((fileUrl, index) => {
+                                  const fileName = fileUrl.split('/').pop() || 'file';
+                                  const fileExtension = fileName.split('.').pop()?.toLowerCase() || '';
+                                  
+                                  const getFileIcon = (ext: string) => {
+                                    if (['jpg', 'jpeg', 'png', 'gif'].includes(ext)) {
+                                      return (
+                                        <svg className="h-6 w-6 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
+                                          <path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd" />
+                                        </svg>
+                                      );
+                                    }
+                                    if (ext === 'pdf') {
+                                      return (
+                                        <svg className="h-6 w-6 text-red-500" fill="currentColor" viewBox="0 0 20 20">
+                                          <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clipRule="evenodd" />
+                                        </svg>
+                                      );
+                                    }
+                                    if (['mp4', 'mov', 'avi'].includes(ext)) {
+                                      return (
+                                        <svg className="h-6 w-6 text-purple-500" fill="currentColor" viewBox="0 0 20 20">
+                                          <path d="M2 6a2 2 0 012-2h6a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V6zM14.553 7.106A1 1 0 0014 8v4a1 1 0 00.553.894l2 1A1 1 0 0018 13V7a1 1 0 00-1.447-.894l-2 1z" />
+                                        </svg>
+                                      );
+                                    }
+                                    if (['doc', 'docx'].includes(ext)) {
+                                      return (
+                                        <svg className="h-6 w-6 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                                          <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clipRule="evenodd" />
+                                        </svg>
+                                      );
+                                    }
+                                    if (['ppt', 'pptx'].includes(ext)) {
+                                      return (
+                                        <svg className="h-6 w-6 text-orange-500" fill="currentColor" viewBox="0 0 20 20">
+                                          <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clipRule="evenodd" />
+                                        </svg>
+                                      );
+                                    }
+                                    return (
+                                      <svg className="h-6 w-6 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clipRule="evenodd" />
+                                      </svg>
+                                    );
+                                  };
+
+                                  return (
+                                    <div key={index} className="flex items-center space-x-3 p-3 bg-gray-50 rounded-md hover:bg-gray-100 transition-colors">
+                                      {getFileIcon(fileExtension)}
+                                      <div className="flex-1 min-w-0">
+                                        <p className="text-sm font-medium text-gray-900 truncate">
+                                          {fileName.replace(/^\d+-/, '')}
+                                        </p>
+                                        <p className="text-xs text-gray-500 uppercase">
+                                          {fileExtension} file
+                                        </p>
+                                      </div>
+                                      <div className="flex space-x-2">
+                                        <a
+                                          href={fileUrl}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          className="inline-flex items-center px-3 py-1 border border-gray-300 rounded-md text-xs font-medium text-gray-700 bg-white hover:bg-gray-50"
+                                        >
+                                          View
+                                        </a>
+                                        <a
+                                          href={fileUrl}
+                                          download
+                                          className="inline-flex items-center px-3 py-1 border border-transparent rounded-md text-xs font-medium text-white bg-blue-600 hover:bg-blue-700"
+                                        >
+                                          Download
+                                        </a>
+                                      </div>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          )}
+                          {proposal.poster_attachment && proposal.poster_attachment.trim() && (
+                            <div>
+                              <div className="flex items-center space-x-2 mb-2">
+                                <svg className="h-5 w-5 text-purple-500" fill="currentColor" viewBox="0 0 20 20">
+                                  <path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd" />
+                                </svg>
+                                <span className="text-gray-500">Poster Files:</span>
+                              </div>
+                              <div className="grid grid-cols-1 gap-2">
+                                {proposal.poster_attachment.split(',').filter(url => url.trim()).map((fileUrl, index) => {
+                                  const fileName = fileUrl.split('/').pop() || 'file';
+                                  const fileExtension = fileName.split('.').pop()?.toLowerCase() || '';
+                                  
+                                  const getFileIcon = (ext: string) => {
+                                    if (['jpg', 'jpeg', 'png', 'gif'].includes(ext)) {
+                                      return (
+                                        <svg className="h-6 w-6 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
+                                          <path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd" />
+                                        </svg>
+                                      );
+                                    }
+                                    if (ext === 'pdf') {
+                                      return (
+                                        <svg className="h-6 w-6 text-red-500" fill="currentColor" viewBox="0 0 20 20">
+                                          <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clipRule="evenodd" />
+                                        </svg>
+                                      );
+                                    }
+                                    if (['mp4', 'mov', 'avi'].includes(ext)) {
+                                      return (
+                                        <svg className="h-6 w-6 text-purple-500" fill="currentColor" viewBox="0 0 20 20">
+                                          <path d="M2 6a2 2 0 012-2h6a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V6zM14.553 7.106A1 1 0 0014 8v4a1 1 0 00.553.894l2 1A1 1 0 0018 13V7a1 1 0 00-1.447-.894l-2 1z" />
+                                        </svg>
+                                      );
+                                    }
+                                    if (['doc', 'docx'].includes(ext)) {
+                                      return (
+                                        <svg className="h-6 w-6 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                                          <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clipRule="evenodd" />
+                                        </svg>
+                                      );
+                                    }
+                                    if (['ppt', 'pptx'].includes(ext)) {
+                                      return (
+                                        <svg className="h-6 w-6 text-orange-500" fill="currentColor" viewBox="0 0 20 20">
+                                          <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clipRule="evenodd" />
+                                        </svg>
+                                      );
+                                    }
+                                    return (
+                                      <svg className="h-6 w-6 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clipRule="evenodd" />
+                                      </svg>
+                                    );
+                                  };
+
+                                  return (
+                                    <div key={index} className="flex items-center space-x-3 p-3 bg-gray-50 rounded-md hover:bg-gray-100 transition-colors">
+                                      {getFileIcon(fileExtension)}
+                                      <div className="flex-1 min-w-0">
+                                        <p className="text-sm font-medium text-gray-900 truncate">
+                                          {fileName.replace(/^\d+-/, '')}
                                         </p>
                                         <p className="text-xs text-gray-500 uppercase">
                                           {fileExtension} file
