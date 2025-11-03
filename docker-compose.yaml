@@ -14,6 +14,8 @@ services:
     depends_on:
       - postgres
     restart: always
+    user: "1001:1001"
+
 
   postgres:
     image: postgres:alpine
@@ -36,7 +38,7 @@ services:
       - "443:443"
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile
-      - uploads-data:/app/public/uploads  # Add this to share uploads with app
+      - uploads-data:/uploads  # Add this to share uploads with app
       - caddy-data:/data
       - caddy-config:/config
     depends_on:
