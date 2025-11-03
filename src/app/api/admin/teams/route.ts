@@ -31,7 +31,41 @@ export async function GET() {
             theme: true
           }
         },
-        proposals: true
+        proposals: {
+          select: {
+            id: true,
+            title: true,
+            description: true,
+            content: true,
+            state: true,
+            link: true,
+            attachment: true,
+            ppt_attachment: true,
+            poster_attachment: true,
+            remarks: true,
+            created_at: true,
+            updated_at: true
+          },
+          orderBy: {
+            created_at: 'desc'
+          }
+        },
+        evaluation: {
+          include: {
+            individualEvaluations: {
+              include: {
+                teamMember: {
+                  select: {
+                    id: true,
+                    name: true,
+                    email: true,
+                    role: true
+                  }
+                }
+              }
+            }
+          }
+        }
       },
       orderBy: {
         createdAt: 'desc'
@@ -73,7 +107,50 @@ export async function GET() {
         name: `${team.lead.firstName} ${team.lead.lastName}`,
         email: team.lead.email
       } : null,
-      project: team.project
+      project: team.project,
+      proposals: team.proposals.map(p => ({
+        id: p.id,
+        title: p.title,
+        description: p.description,
+        state: p.state,
+        link: p.link,
+        attachment: p.attachment,
+        pptAttachment: p.ppt_attachment,
+        posterAttachment: p.poster_attachment,
+        remarks: p.remarks,
+        createdAt: p.created_at,
+        updatedAt: p.updated_at
+      })),
+      evaluation: team.evaluation ? {
+        id: team.evaluation.id,
+        status: team.evaluation.status,
+        // Group marks
+        posterMarks: team.evaluation.posterMarks,
+        videoMarks: team.evaluation.videoMarks,
+        reportMarks: team.evaluation.reportMarks,
+        pptMarks: team.evaluation.pptMarks,
+        groupScore: team.evaluation.groupScore,
+        // External evaluator
+        externalEvaluatorName: team.evaluation.externalEvaluatorName,
+        externalEvaluatorEmail: team.evaluation.externalEvaluatorEmail,
+        // Individual evaluations
+        individualEvaluations: team.evaluation.individualEvaluations.map(ie => ({
+          id: ie.id,
+          memberName: ie.memberName,
+          memberEmail: ie.memberEmail,
+          learningContribution: ie.learningContribution,
+          presentationSkill: ie.presentationSkill,
+          contributionToProject: ie.contributionToProject,
+          individualScore: ie.individualScore,
+          externalEvaluatorMarks: ie.externalEvaluatorMarks,
+          totalIndividualMarks: ie.totalIndividualMarks,
+          teamMember: ie.teamMember
+        })),
+        // Metadata
+        remarks: team.evaluation.remarks,
+        evaluatedAt: team.evaluation.evaluatedAt,
+        updatedAt: team.evaluation.updatedAt
+      } : null
     }));
 
     return NextResponse.json(transformedTeams);

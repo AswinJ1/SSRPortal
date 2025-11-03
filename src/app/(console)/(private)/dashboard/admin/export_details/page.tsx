@@ -23,8 +23,10 @@ const AVAILABLE_COLUMNS = [
   { id: 'memberNames', label: 'Team Members (All Names)', category: 'Team Members' },
   { id: 'memberEmails', label: 'Member Emails (All)', category: 'Team Members' },
   { id: 'memberRoles', label: 'Member Roles (All)', category: 'Team Members' },
-  { id: 'memberCount', label: 'Total Member Count', category: 'Team Members' },
   { id: 'memberRollNumbers', label: 'Member Roll Numbers (All)', category: 'Team Members' },
+  { id: 'memberBatches', label: 'Member Batches (All)', category: 'Team Members' },
+  { id: 'memberCount', label: 'Total Member Count', category: 'Team Members' },
+  
   { id: 'proposalTitle', label: 'Proposal Title', category: 'Proposal Details' },
   { id: 'proposalDescription', label: 'Proposal Description', category: 'Proposal Details' },
   { id: 'proposalStatus', label: 'Proposal Status', category: 'Proposal Details' },
@@ -38,8 +40,30 @@ const AVAILABLE_COLUMNS = [
   { id: 'proposalCompletionDate', label: 'Completion Date', category: 'Proposal Details' },
   { id: 'proposalVideoLink', label: 'Video Link', category: 'Proposal Details' },
   { id: 'proposalAttachment', label: 'Proposal Attachment', category: 'Proposal Details' },
+  { id: 'proposalPptAttachment', label: 'PPT Attachment', category: 'Proposal Details' },
+  { id: 'proposalPosterAttachment', label: 'Poster Attachment', category: 'Proposal Details' },
   { id: 'proposalRemarks', label: 'Proposal Remarks', category: 'Proposal Details' },
   { id: 'proposalSubmittedAt', label: 'Proposal Submitted Date', category: 'Proposal Details' },
+  
+  { id: 'evaluationPosterMarks', label: 'Poster Marks (Out of 2)', category: 'Evaluation - Group Marks' },
+  { id: 'evaluationVideoMarks', label: 'Video Marks (Out of 3)', category: 'Evaluation - Group Marks' },
+  { id: 'evaluationReportMarks', label: 'Report Marks (Out of 3)', category: 'Evaluation - Group Marks' },
+  { id: 'evaluationPptMarks', label: 'PPT Marks (Out of 3)', category: 'Evaluation - Group Marks' },
+  { id: 'evaluationGroupScore', label: 'Group Score (Out of 11)', category: 'Evaluation - Group Marks' },
+  
+  { id: 'evaluationLearningContribution', label: 'Learning Contribution (Out of 2)', category: 'Evaluation - Individual Marks' },
+  { id: 'evaluationPresentationSkill', label: 'Presentation Skill (Out of 2)', category: 'Evaluation - Individual Marks' },
+  { id: 'evaluationContributionToProject', label: 'Contribution to Project (Out of 2)', category: 'Evaluation - Individual Marks' },
+  { id: 'evaluationIndividualScore', label: 'Individual Score (Out of 6)', category: 'Evaluation - Individual Marks' },
+  { id: 'evaluationExternalMarks', label: 'External Evaluator Marks', category: 'Evaluation - Individual Marks' },
+  { id: 'evaluationTotalIndividualMarks', label: 'Total Individual Marks', category: 'Evaluation - Individual Marks' },
+  
+  { id: 'evaluationStatus', label: 'Evaluation Status', category: 'Evaluation - Metadata' },
+  { id: 'evaluationExternalEvaluatorName', label: 'External Evaluator Name', category: 'Evaluation - Metadata' },
+  { id: 'evaluationExternalEvaluatorEmail', label: 'External Evaluator Email', category: 'Evaluation - Metadata' },
+  { id: 'evaluationRemarks', label: 'Evaluation Remarks', category: 'Evaluation - Metadata' },
+  { id: 'evaluationDate', label: 'Evaluation Date', category: 'Evaluation - Metadata' },
+  { id: 'evaluationLastUpdated', label: 'Evaluation Last Updated', category: 'Evaluation - Metadata' },
 ];
 
 const ExportPage = () => {
@@ -342,27 +366,6 @@ const ExportPage = () => {
                 </div>
               </div>
             </div>
-
-            {/* Additional Info Card */}
-            {/* <div className="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <div className="flex">
-                <AlertCircle className="h-5 w-5 text-blue-400 mt-0.5 flex-shrink-0" />
-                <div className="ml-3">
-                  <h3 className="text-sm font-medium text-blue-800">
-                    Important Notes
-                  </h3>
-                  <div className="mt-2 text-sm text-blue-700">
-                    <ul className="list-disc list-inside space-y-1">
-                      <li>Select at least one column to export</li>
-                      <li>The export includes all teams visible to administrators</li>
-                      <li>File format: CSV (Comma Separated Values)</li>
-                      <li>Compatible with Excel, Google Sheets, and other spreadsheet software</li>
-                      <li>Filename includes the current date for easy tracking</li>
-                    </ul>
-                  </div>
-                </div>
-              </div>
-            </div> */}
 
             {/* Stats Preview */}
             <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
