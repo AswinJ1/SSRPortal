@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { writeFile, mkdir, access } from 'fs/promises';
+import { writeFile, mkdir, access, stat } from 'fs/promises';
 import { join } from 'path';
 import { auth } from '@/lib/auth';
 import { constants } from 'fs';
@@ -21,12 +21,43 @@ export async function POST(req: Request) {
 
     // Check if directory exists and is writable
     try {
-      await access(UPLOAD_DIR, constants.W_OK);
-      console.log('Upload directory is writable');
-    } catch (error) {
-      console.error('Upload directory not writable, attempting to create...');
-      await mkdir(UPLOAD_DIR, { recursive: true });
-      console.log('Upload directory created');
+      const stats = await stat(UPLOAD_DIR);
+      
+      if (!stats.isDirectory()) {
+        console.error('Upload path exists but is not a directory');
+        return new NextResponse('Upload configuration error', { status: 500 });
+      }
+      
+      // Check if directory is writable
+      try {
+        await access(UPLOAD_DIR, constants.W_OK);
+        console.log('Upload directory is writable');
+      } catch (writeError) {
+        console.error('Upload directory exists but is not writable');
+        console.error('Directory permissions check failed:', writeError);
+        return new NextResponse('Upload configuration error', { status: 500 });
+      }
+      
+    } catch (statError) {
+      // Directory doesn't exist, try to create it
+      if ((statError as NodeJS.ErrnoException).code === 'ENOENT') {
+        console.log('Upload directory does not exist, creating...');
+        try {
+          await mkdir(UPLOAD_DIR, { recursive: true });
+          console.log('Upload directory created successfully');
+          
+          // Verify the newly created directory is writable
+          await access(UPLOAD_DIR, constants.W_OK);
+          console.log('New directory is writable');
+        } catch (mkdirError) {
+          console.error('Failed to create upload directory:', mkdirError);
+          return new NextResponse('Upload configuration error', { status: 500 });
+        }
+      } else {
+        // Some other error occurred
+        console.error('Error checking upload directory:', statError);
+        return new NextResponse('Upload configuration error', { status: 500 });
+      }
     }
 
     const formData = await req.formData();
@@ -37,7 +68,6 @@ export async function POST(req: Request) {
       return new NextResponse('No file provided', { status: 400 });
     }
 
-    console.log(`File received: ${file.name}`);
     console.log(`File size: ${file.size} bytes (${(file.size / 1024 / 1024).toFixed(2)} MB)`);
     console.log(`File type: ${file.type}`);
 
@@ -93,7 +123,7 @@ export async function POST(req: Request) {
         await access(filepath, constants.R_OK);
         console.log('File verified readable');
       } catch (verifyError) {
-        console.error('File verification failed:', verifyError);
+        console.error('File verification failed');
         throw new Error('File saved but not readable');
       }
 
