@@ -37,4 +37,4 @@ next-env.d.ts
 
 .env
 .idea/
-# seed.ts
+seed.ts
