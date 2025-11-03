@@ -16,10 +16,17 @@ const projectSchema = proposalSchema.extend({
   district: z.string().min(1, 'District is required'),
   city: z.string().min(1, 'City is required'),
   placeVisited: z.string().min(1, 'Place visited is required'),
-  travelTime: z.string().min(1, 'Travel time is required'),
-  executionTime: z.string().min(1, 'Execution time is required'),
+  travelTime: z.string()
+    .min(1, 'Travel time is required')
+    .regex(/^[0-9]+(\.[0-9]+)?$/, 'Travel time must be a valid number in hours (e.g., "2", "2.5", "1.75")'),
+  executionTime: z.string()
+    .min(1, 'Execution time is required')
+    .regex(/^[0-9]+(\.[0-9]+)?$/, 'Execution time must be a valid number in hours (e.g., "1", "1.5", "0.5")'),
   completionDate: z.string().min(1, 'Completion date is required'),
   gdriveLink: z.string().url('Please enter a valid Google Drive URL').min(1, 'Google Drive link is required'),
+  totalParticipants: z.string()
+    .min(1, 'Total participants is required')
+    .regex(/^[0-9]+$/, 'Total participants must be a valid number'),
 });
 
 type ProjectFormData = z.infer<typeof projectSchema>;
@@ -223,7 +230,7 @@ const indianStatesWithDistricts: Record<string, string[]> = {
   ],
   "Ladakh": ["Kargil", "Leh"],
   "Lakshadweep": [
-    "Agatti", "Amini", "Andrott", "Bitra", "Chetlat", "Kadmat", "Kalpeni",
+    "Agatti", "Amini", "Andrott", "Bitra", "Chetlat", "Kadmat", "Kalpen",
     "Kavaratti", "Kiltan", "Minicoy"
   ],
   "Puducherry": ["Karaikal", "Mahe", "Puducherry", "Yanam"]
@@ -236,6 +243,8 @@ interface ExistingProposal {
   description: string;
   content: string;
   attachment?: string;
+  ppt_attachment?: string;
+  poster_attachment?: string;
   link?: string;  // Will contain JSON string of metadata for auto-fill
   // Add metadata fields if they exist (legacy support)
   metadata?: {
@@ -248,6 +257,7 @@ interface ExistingProposal {
     travelTime?: string;
     executionTime?: string;
     completionDate?: string;
+    totalParticipants?: string;
   };
 }
 
@@ -261,11 +271,15 @@ export default function ProjectForm({ existingProposal, onEditMode }: ProjectFor
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [statusMessage, setStatusMessage] = useState<StatusMessage | null>(null);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const [selectedPosterFiles, setSelectedPosterFiles] = useState<File[]>([]);
+  const [selectedPptFiles, setSelectedPptFiles] = useState<File[]>([]);
   const [uploadProgress, setUploadProgress] = useState<number>(0);
   const [loadedProposal, setLoadedProposal] = useState<ExistingProposal | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [teamData, setTeamData] = useState<any>(null);
   const [fileError, setFileError] = useState<string | null>(null);
+  const [posterFileError, setPosterFileError] = useState<string | null>(null);
+  const [pptFileError, setPptFileError] = useState<string | null>(null);
 
   const {
     register,
@@ -359,14 +373,43 @@ export default function ProjectForm({ existingProposal, onEditMode }: ProjectFor
     if (files) {
       const fileArray = Array.from(files);
       setSelectedFiles(prev => [...prev, ...fileArray]);
-      // Clear file error when files are selected
       setFileError(null);
+    }
+  };
+
+  // Handle poster file selection
+  const handlePosterFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    if (files) {
+      const fileArray = Array.from(files);
+      setSelectedPosterFiles(prev => [...prev, ...fileArray]);
+      setPosterFileError(null);
+    }
+  };
+
+  // Handle PPT file selection
+  const handlePptFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    if (files) {
+      const fileArray = Array.from(files);
+      setSelectedPptFiles(prev => [...prev, ...fileArray]);
+      setPptFileError(null);
     }
   };
 
   // Remove selected file
   const removeFile = (index: number) => {
     setSelectedFiles(prev => prev.filter((_, i) => i !== index));
+  };
+
+  // Remove selected poster file
+  const removePosterFile = (index: number) => {
+    setSelectedPosterFiles(prev => prev.filter((_, i) => i !== index));
+  };
+
+  // Remove selected PPT file
+  const removePptFile = (index: number) => {
+    setSelectedPptFiles(prev => prev.filter((_, i) => i !== index));
   };
 
   // Upload files to server
@@ -479,7 +522,20 @@ export default function ProjectForm({ existingProposal, onEditMode }: ProjectFor
           setValue('executionTime', metadata.executionTime);
         }
         if (metadata.completionDate && metadata.completionDate.trim()) {
+          // Handle date conversion from DD/MM/YYYY to YYYY-MM-DD for date input
+          const dateValue = metadata.completionDate;
+          if (dateValue.includes('/')) {
+            const [day, month, year] = dateValue.split('/');
+            // Set value for date input (YYYY-MM-DD format)
+            const dateInput = document.querySelector('input[type="date"]') as HTMLInputElement;
+            if (dateInput) {
+              dateInput.value = `${year}-${month}-${day}`;
+            }
+          }
           setValue('completionDate', metadata.completionDate);
+        }
+        if (metadata.totalParticipants && metadata.totalParticipants.trim()) {
+          setValue('totalParticipants', metadata.totalParticipants);
         }
         
         // Set selected state for district dropdown
@@ -505,6 +561,14 @@ export default function ProjectForm({ existingProposal, onEditMode }: ProjectFor
         // You could set these in a display component to show existing files
         console.log('Existing files:', fileUrls);
       }
+      if (proposal.poster_attachment) {
+        const posterUrls = proposal.poster_attachment.split(',').filter(url => url.trim());
+        console.log('Existing poster files:', posterUrls);
+      }
+      if (proposal.ppt_attachment) {
+        const pptUrls = proposal.ppt_attachment.split(',').filter(url => url.trim());
+        console.log('Existing PPT files:', pptUrls);
+      }
     } else {
       // Notify parent that we're in create mode
       onEditMode?.(false);
@@ -521,8 +585,24 @@ export default function ProjectForm({ existingProposal, onEditMode }: ProjectFor
       return;
     }
     
-    // Clear file error if validation passes
+    // Check if poster files are uploaded (required)
+    if (selectedPosterFiles.length === 0 && (!existingProposal?.poster_attachment && !loadedProposal?.poster_attachment)) {
+      setPosterFileError('At least one poster file must be uploaded');
+      setIsSubmitting(false);
+      return;
+    }
+    
+    // Check if PPT files are uploaded (required)
+    if (selectedPptFiles.length === 0 && (!existingProposal?.ppt_attachment && !loadedProposal?.ppt_attachment)) {
+      setPptFileError('At least one PPT file must be uploaded');
+      setIsSubmitting(false);
+      return;
+    }
+    
+    // Clear file errors if validation passes
     setFileError(null);
+    setPosterFileError(null);
+    setPptFileError(null);
     
     try {
       // Check if user is logged in and has a team
@@ -551,13 +631,31 @@ export default function ProjectForm({ existingProposal, onEditMode }: ProjectFor
       
       // Upload files if any are selected
       let uploadedFileUrls: string[] = [];
+      let uploadedPosterUrls: string[] = [];
+      let uploadedPptUrls: string[] = [];
+      
       if (selectedFiles.length > 0) {
         setStatusMessage({
           type: 'info',
           message: 'Uploading files...'
         });
-        
         uploadedFileUrls = await uploadFiles(selectedFiles);
+      }
+      
+      if (selectedPosterFiles.length > 0) {
+        setStatusMessage({
+          type: 'info',
+          message: 'Uploading poster files...'
+        });
+        uploadedPosterUrls = await uploadFiles(selectedPosterFiles);
+      }
+      
+      if (selectedPptFiles.length > 0) {
+        setStatusMessage({
+          type: 'info',
+          message: 'Uploading PPT files...'
+        });
+        uploadedPptUrls = await uploadFiles(selectedPptFiles);
       }
       
       // Only include fields that match the API schema
@@ -571,6 +669,7 @@ export default function ProjectForm({ existingProposal, onEditMode }: ProjectFor
         travelTime: data.travelTime || '',
         executionTime: data.executionTime || '',
         completionDate: data.completionDate || '',
+        totalParticipants: data.totalParticipants || '',
       };
 
       const payload = {
@@ -579,6 +678,8 @@ export default function ProjectForm({ existingProposal, onEditMode }: ProjectFor
         content: data.content + '\n\n<!-- METADATA:' + JSON.stringify(metadata) + ' -->',  // Store metadata as hidden HTML comment in content
         // Optional fields
         attachment: uploadedFileUrls.join(','),  // Store multiple file URLs as comma-separated string
+        poster_attachment: uploadedPosterUrls.join(','),  // Store poster files
+        ppt_attachment: uploadedPptUrls.join(','),  // Store PPT files
         link: data.gdriveLink || '',  // Store Google Drive link in the link field
         
         // Extra metadata fields (these won't be used by the API validation
@@ -660,6 +761,58 @@ export default function ProjectForm({ existingProposal, onEditMode }: ProjectFor
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
+
+  const FilePreview = ({ files, onRemove, type }: { files: File[], onRemove: (index: number) => void, type: string }) => (
+    <div className="mt-6">
+      <h4 className="text-sm font-semibold text-gray-700 mb-3">Selected {type} Files:</h4>
+      <div className="space-y-3">
+        {files.map((file, index) => (
+          <div key={index} className="flex items-center justify-between bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
+            <div className="flex items-center">
+              <div className="flex-shrink-0">
+                {file.type.startsWith('image/') ? (
+                  <svg className="h-10 w-10 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd" />
+                  </svg>
+                ) : file.type === 'application/pdf' ? (
+                  <svg className="h-10 w-10 text-red-500" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clipRule="evenodd" />
+                  </svg>
+                ) : file.type.startsWith('video/') ? (
+                  <svg className="h-10 w-10 text-purple-500" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M2 6a2 2 0 012-2h6a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V6zM14.553 7.106A1 1 0 0014 8v4a1 1 0 00.553.894l2 1A1 1 0 0018 13V7a1 1 0 00-1.447-.894l-2 1z" />
+                  </svg>
+                ) : file.type.includes('presentation') || file.type.includes('powerpoint') ? (
+                  <svg className="h-10 w-10 text-orange-500" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clipRule="evenodd" />
+                  </svg>
+                ) : (
+                  <svg className="h-10 w-10 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clipRule="evenodd" />
+                  </svg>
+                )}
+              </div>
+              <div className="ml-4">
+                <p className="text-sm font-semibold text-gray-900">{file.name}</p>
+                <p className="text-xs text-gray-500">
+                  {(file.size / 1024 / 1024).toFixed(2)} MB
+                </p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => onRemove(index)}
+              className="ml-4 p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+            >
+              <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+              </svg>
+            </button>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
 
   return (
     <div className="max-w-4xl mx-auto bg-white">
@@ -830,12 +983,16 @@ export default function ProjectForm({ existingProposal, onEditMode }: ProjectFor
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Travel Time <span className="text-red-500">*</span>
+                Travel Time (in hours) <span className="text-red-500">*</span>
               </label>
               <input
-                type="text"
-                placeholder="e.g. 2 hours 30 minutes"
-                {...register('travelTime')}
+                type="number"
+                step="0.1"
+                min="0"
+                placeholder="e.g. 2.5 (2 hours 30 minutes)"
+                {...register('travelTime', {
+                  setValueAs: (v) => v === '' ? '' : String(v)
+                })}
                 className="block w-full px-4 py-3 bg-white border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
               />
               {errors.travelTime && <p className="text-red-600 text-sm mt-1 font-medium">{errors.travelTime.message}</p>}
@@ -843,28 +1000,68 @@ export default function ProjectForm({ existingProposal, onEditMode }: ProjectFor
 
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Execution Time <span className="text-red-500">*</span>
+                Execution Time (in hours) <span className="text-red-500">*</span>
               </label>
               <input
-                type="text"
-                placeholder="e.g. 1 hour"
-                {...register('executionTime')}
+                type="number"
+                step="0.1"
+                min="0"
+                placeholder="e.g. 1.5 (1 hour 30 minutes)"
+                {...register('executionTime', {
+                  setValueAs: (v) => v === '' ? '' : String(v)
+                })}
                 className="block w-full px-4 py-3 bg-white border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
               />
               {errors.executionTime && <p className="text-red-600 text-sm mt-1 font-medium">{errors.executionTime.message}</p>}
             </div>
 
-            <div>
+           <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">
                 Date of Completion <span className="text-red-500">*</span>
               </label>
               <input
                 type="date"
-                {...register('completionDate')}
+                value={watch('completionDate') ? 
+                  // If completionDate is in DD/MM/YYYY format, convert to YYYY-MM-DD for input
+                  watch('completionDate').includes('/') ? 
+                    (() => {
+                      const [day, month, year] = watch('completionDate').split('/');
+                      return `${year}-${month}-${day}`;
+                    })() 
+                    : watch('completionDate')
+                  : ''}
+                onChange={(e) => {
+                  // Convert to DD/MM/YYYY format for storage
+                  const dateValue = e.target.value;
+                  if (dateValue) {
+                    const [year, month, day] = dateValue.split('-');
+                    setValue('completionDate', `${day}/${month}/${year}`, { shouldValidate: true });
+                  } else {
+                    setValue('completionDate', '', { shouldValidate: true });
+                  }
+                }}
                 className="block w-full px-4 py-3 bg-white border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
               />
               {errors.completionDate && <p className="text-red-600 text-sm mt-1 font-medium">{errors.completionDate.message}</p>}
+              <p className="text-xs text-gray-500 mt-1">
+                Format: DD/MM/YYYY
+              </p>
             </div>
+          </div>
+
+          {/* Total Participants Field */}
+          <div className="mt-6">
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              Total Participants <span className="text-red-500">*</span>
+            </label>
+            <input
+              type="number"
+              min="1"
+              placeholder="Enter total number of participants"
+              {...register('totalParticipants')}
+              className="block w-full px-4 py-3 bg-white border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+            />
+            {errors.totalParticipants && <p className="text-red-600 text-sm mt-1 font-medium">{errors.totalParticipants.message}</p>}
           </div>
         </div>
 
@@ -890,7 +1087,6 @@ export default function ProjectForm({ existingProposal, onEditMode }: ProjectFor
                 rows={4}
                 placeholder="Provide a comprehensive description of your project..."
                 className="block w-full px-4 py-3 bg-white border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors resize-none"
-                defaultValue="This is a detailed description of the project. It needs to be at least 100 characters long to pass validation. This project aims to achieve significant impact in the selected category through careful planning and execution."
               />
               {errors.description && <p className="text-red-600 text-sm mt-1 font-medium">{errors.description.message}</p>}
             </div>
@@ -905,14 +1101,13 @@ export default function ProjectForm({ existingProposal, onEditMode }: ProjectFor
                 rows={6}
                 placeholder="Describe the implementation details, timeline, resources, and expected outcomes..."
                 className="block w-full px-4 py-3 bg-white border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors resize-none"
-                defaultValue="This is the content of the proposal which also needs to be at least 100 characters long. It contains all the details about how the project will be implemented, the timeline, resources required, and expected outcomes."
               />
               {errors.content && <p className="text-red-600 text-sm mt-1 font-medium">{errors.content.message}</p>}
             </div>
           </div>
         </div>
 
-        {/* File Upload Section */}
+        {/* File Upload Section - General Attachments */}
         <div className="bg-gray-50 rounded-xl p-6">
           <h2 className="text-xl font-semibold text-gray-900 mb-6 flex items-center">
             <div className="w-8 h-8 bg-indigo-100 rounded-lg flex items-center justify-center mr-3">
@@ -950,60 +1145,112 @@ export default function ProjectForm({ existingProposal, onEditMode }: ProjectFor
             </div>
           </div>
           
-          {/* File Upload Error Message */}
           {fileError && (
             <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-lg">
               <p className="text-red-600 text-sm font-medium">{fileError}</p>
             </div>
           )}
 
-          {/* Selected Files Preview */}
           {selectedFiles.length > 0 && (
-            <div className="mt-6">
-              <h4 className="text-sm font-semibold text-gray-700 mb-3">Selected Files:</h4>
-              <div className="space-y-3">
-                {selectedFiles.map((file, index) => (
-                  <div key={index} className="flex items-center justify-between bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
-                    <div className="flex items-center">
-                      <div className="flex-shrink-0">
-                        {file.type.startsWith('image/') ? (
-                          <svg className="h-10 w-10 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd" />
-                          </svg>
-                        ) : file.type === 'application/pdf' ? (
-                          <svg className="h-10 w-10 text-red-500" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clipRule="evenodd" />
-                          </svg>
-                        ) : file.type.startsWith('video/') ? (
-                          <svg className="h-10 w-10 text-purple-500" fill="currentColor" viewBox="0 0 20 20">
-                            <path d="M2 6a2 2 0 012-2h6a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V6zM14.553 7.106A1 1 0 0014 8v4a1 1 0 00.553.894l2 1A1 1 0 0018 13V7a1 1 0 00-1.447-.894l-2 1z" />
-                          </svg>
-                        ) : (
-                          <svg className="h-10 w-10 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clipRule="evenodd" />
-                          </svg>
-                        )}
-                      </div>
-                      <div className="ml-4">
-                        <p className="text-sm font-semibold text-gray-900">{file.name}</p>
-                        <p className="text-xs text-gray-500">
-                          {(file.size / 1024 / 1024).toFixed(2)} MB
-                        </p>
-                      </div>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => removeFile(index)}
-                      className="ml-4 p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                    >
-                      <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
-                      </svg>
-                    </button>
-                  </div>
-                ))}
-              </div>
+            <FilePreview files={selectedFiles} onRemove={removeFile} type="Supporting" />
+          )}
+        </div>
+
+        {/* Poster Upload Section */}
+        <div className="bg-gray-50 rounded-xl p-6">
+          <h2 className="text-xl font-semibold text-gray-900 mb-6 flex items-center">
+            <div className="w-8 h-8 bg-pink-100 rounded-lg flex items-center justify-center mr-3">
+              <svg className="w-4 h-4 text-pink-600" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd" />
+              </svg>
             </div>
+            Project Poster <span className="text-red-500">*</span>
+          </h2>
+          
+          <div className="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center hover:border-gray-400 transition-colors">
+            <svg className="mx-auto h-16 w-16 text-gray-400 mb-4" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+              <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+            <div>
+              <label htmlFor="poster-upload" className="cursor-pointer">
+                <span className="text-lg font-semibold text-gray-900 hover:text-blue-600 transition-colors">
+                  Drop poster files here or click to upload
+                </span>
+                <input
+                  id="poster-upload"
+                  type="file"
+                  multiple
+                  accept=".pdf,.jpg,.jpeg,.png"
+                  className="sr-only"
+                  onChange={handlePosterFileChange}
+                />
+              </label>
+              <p className="mt-2 text-sm text-gray-600">
+                PDF, JPG, PNG
+              </p>
+              <p className="text-xs text-gray-500 mt-1">
+                Maximum file size: 50MB per file
+              </p>
+            </div>
+          </div>
+          
+          {posterFileError && (
+            <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-lg">
+              <p className="text-red-600 text-sm font-medium">{posterFileError}</p>
+            </div>
+          )}
+
+          {selectedPosterFiles.length > 0 && (
+            <FilePreview files={selectedPosterFiles} onRemove={removePosterFile} type="Poster" />
+          )}
+        </div>
+
+        {/* PPT Upload Section */}
+        <div className="bg-gray-50 rounded-xl p-6">
+          <h2 className="text-xl font-semibold text-gray-900 mb-6 flex items-center">
+            <div className="w-8 h-8 bg-yellow-100 rounded-lg flex items-center justify-center mr-3">
+              <svg className="w-4 h-4 text-yellow-600" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clipRule="evenodd" />
+              </svg>
+            </div>
+            Project Presentation (PPT) <span className="text-red-500">*</span>
+          </h2>
+          
+          <div className="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center hover:border-gray-400 transition-colors">
+            <svg className="mx-auto h-16 w-16 text-gray-400 mb-4" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+              <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+            <div>
+              <label htmlFor="ppt-upload" className="cursor-pointer">
+                <span className="text-lg font-semibold text-gray-900 hover:text-blue-600 transition-colors">
+                  Drop PPT files here or click to upload
+                </span>
+                <input
+                  id="ppt-upload"
+                  type="file"
+                  multiple
+                  accept=".ppt,.pptx,.pdf"
+                  className="sr-only"
+                  onChange={handlePptFileChange}
+                />
+              </label>
+              <p className="mt-2 text-sm text-gray-600">
+                PPT, PPTX, PDF
+              </p>
+              <p className="text-xs text-gray-500 mt-1">
+                Maximum file size: 50MB per file
+              </p>
+            </div>
+          </div>
+          
+          {pptFileError && (
+            <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-lg">
+              <p className="text-red-600 text-sm font-medium">{pptFileError}</p>
+            </div>
+          )}
+
+          {selectedPptFiles.length > 0 && (
+            <FilePreview files={selectedPptFiles} onRemove={removePptFile} type="PPT" />
           )}
         </div>
 

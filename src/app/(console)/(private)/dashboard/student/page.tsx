@@ -164,7 +164,7 @@ export default function StudentDashboard() {
             </div>
 
             <div className="bg-white rounded-lg shadow p-6">
-              <h3 className="text-lg font-semibold mb-2">Project Status</h3>
+              <h3 className="text-lg font-semibold mb-2">Team Status</h3>
               <p className="text-2xl font-bold text-primary">{projectStats.status}</p>
               <div className="mt-2 bg-gray-200 rounded-full h-2">
                 <div 

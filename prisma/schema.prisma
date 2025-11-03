@@ -55,6 +55,23 @@ model User {
   team          Team?        @relation("User_lead")
   mentees       Team[]       @relation("User_mentor")
   teamMembers   TeamMember[]
+  teamEvaluations TeamEvaluation[] @relation("MentorEvaluations")
+}
+
+model TeamMember {
+  id         String   @id @default(cuid())
+  teamId     String
+  userId     String
+  joinedAt   DateTime @default(now())
+  role       String   @default("MEMBER")
+  name       String
+  email      String
+  rollNumber String?
+  team       Team     @relation(fields: [teamId], references: [id])
+  user       User     @relation(fields: [userId], references: [id])
+  individualEvaluation IndividualEvaluation? @relation("MemberEvaluation")
+
+  @@unique([teamId, userId])
 }
 
 model Team {
@@ -74,21 +91,7 @@ model Team {
   lead          User?        @relation("User_lead", fields: [leadId], references: [id])
   mentor        User?        @relation("User_mentor", fields: [mentorId], references: [id])
   members       TeamMember[]
-}
-
-model TeamMember {
-  id         String   @id @default(cuid())
-  teamId     String
-  userId     String
-  joinedAt   DateTime @default(now())
-  role       String   @default("MEMBER")
-  name       String
-  email      String
-  rollNumber String?
-  team       Team     @relation(fields: [teamId], references: [id])
-  user       User     @relation(fields: [userId], references: [id])
-
-  @@unique([teamId, userId])
+  evaluation    TeamEvaluation?
 }
 
 model VerificationToken {
@@ -105,6 +108,8 @@ model Proposal {
   description       String
   content           String
   attachment        String?
+  ppt_attachment    String?
+  poster_attachment String?
   link              String?
   created_at        DateTime  @default(now())
   updated_at        DateTime  @updatedAt
@@ -141,4 +146,64 @@ model Theme {
   name        String
   description String?
   Project     Project[]
+}
+
+model TeamEvaluation {
+  id                      String                 @id @default(cuid())
+  teamId                  String                 @unique
+  team                    Team                   @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  mentorId                String
+  mentor                  User                   @relation("MentorEvaluations", fields: [mentorId], references: [id])
+  
+  // Group marks (same for everyone in the team)
+  posterMarks             Float                  @default(0)
+  videoMarks              Float                  @default(0)
+  reportMarks             Float                  @default(0)
+  pptMarks                Float                  @default(0)
+  groupScore              Float                  @default(0)
+  
+  // External evaluator
+  externalEvaluatorName   String?
+  externalEvaluatorEmail  String?
+  
+  // Metadata
+  status                  String                 @default("DRAFT")
+  remarks                 String?
+  evaluatedAt             DateTime               @default(now())
+  updatedAt               DateTime?
+  
+  // Relations
+  individualEvaluations   IndividualEvaluation[]
+  
+  @@index([teamId])
+  @@index([mentorId])
+}
+
+model IndividualEvaluation {
+  id                      String           @id @default(cuid())
+  teamEvaluationId        String
+  teamEvaluation          TeamEvaluation   @relation(fields: [teamEvaluationId], references: [id], onDelete: Cascade)
+  
+  teamMemberId            String           @unique
+  teamMember              TeamMember       @relation("MemberEvaluation", fields: [teamMemberId], references: [id], onDelete: Cascade)
+  
+  memberId                String
+  memberName              String
+  memberEmail             String
+  
+  // Individual criteria (6 marks total from mentor)
+  learningContribution    Float            @default(0) // 2 marks
+  presentationSkill       Float            @default(0) // 2 marks
+  contributionToProject   Float            @default(0) // 2 marks
+  individualScore         Float            @default(0) // Sum of above (max 6)
+  
+  // External evaluator marks
+  externalEvaluatorMarks  Float            @default(0)
+  
+  // Total marks
+  totalIndividualMarks    Float            @default(0) // groupScore + individualScore + externalMarks (max 17+)
+  
+  @@index([teamEvaluationId])
+  @@index([memberId])
+  @@index([teamMemberId])
 }

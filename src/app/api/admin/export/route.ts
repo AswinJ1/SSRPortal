@@ -213,6 +213,18 @@ Object.assign(COLUMN_MAPPING, {
       ? data.team.proposals.map((p: any) => p.attachment || 'No attachment').join('\n')
       : 'No proposals'
   },
+  proposalPptAttachment: { 
+    label: 'PPT Attachment', 
+    getValue: (data) => data.team.proposals.length > 0
+      ? data.team.proposals.map((p: any) => p.ppt_attachment || 'No PPT attachment').join('\n')
+      : 'No proposals'
+  },
+  proposalPosterAttachment: { 
+    label: 'Poster Attachment', 
+    getValue: (data) => data.team.proposals.length > 0
+      ? data.team.proposals.map((p: any) => p.poster_attachment || 'No Poster attachment').join('\n')
+      : 'No proposals'
+  },
   proposalRemarks: { 
     label: 'Proposal Remarks', 
     getValue: (data) => data.team.proposals.length > 0
@@ -278,6 +290,8 @@ export async function POST(request: Request) {
             link: true,
             created_at: true,
             attachment: true,
+            ppt_attachment: true,
+            poster_attachment: true,
             remarks: true
           },
           orderBy: {
@@ -390,6 +404,8 @@ export async function GET() {
             link: true,
             created_at: true,
             attachment: true,
+            ppt_attachment: true,
+            poster_attachment: true,
             remarks: true
           }
         }

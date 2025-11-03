@@ -12,6 +12,8 @@ interface Proposal {
   description: string;
   content: string;
   attachment?: string;
+  ppt_attachment?: string;
+  poster_attachment?: string;
   link?: string;
   state: string;
 }
