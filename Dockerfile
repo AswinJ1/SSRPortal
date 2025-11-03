@@ -53,10 +53,10 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 # Create uploads directory AFTER copies with correct permissions
 RUN mkdir -p /app/public/uploads && \
     chown -R nextjs:nodejs /app/public/uploads && \
-    chmod 775 /app/public/uploads
+    chmod 755 /app/public/uploads
 
 USER nextjs
 EXPOSE 3000
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
-CMD npx prisma migrate deploy && node server.js
+CMD prisma db push --skip-generate && node server.js
