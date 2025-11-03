@@ -237,6 +237,114 @@ Object.assign(COLUMN_MAPPING, {
       ? data.team.proposals[data.team.proposals.length - 1].created_at.toLocaleDateString()
       : 'No proposals'
   },
+  
+  // Evaluation fields - Group Marks
+  evaluationPosterMarks: {
+    label: 'Poster Marks (Out of 2)',
+    getValue: (data) => data.team.evaluation?.posterMarks?.toString() || 'Not Evaluated'
+  },
+  evaluationVideoMarks: {
+    label: 'Video Marks (Out of 3)',
+    getValue: (data) => data.team.evaluation?.videoMarks?.toString() || 'Not Evaluated'
+  },
+  evaluationReportMarks: {
+    label: 'Report Marks (Out of 3)',
+    getValue: (data) => data.team.evaluation?.reportMarks?.toString() || 'Not Evaluated'
+  },
+  evaluationPptMarks: {
+    label: 'PPT Marks (Out of 3)',
+    getValue: (data) => data.team.evaluation?.pptMarks?.toString() || 'Not Evaluated'
+  },
+  evaluationGroupScore: {
+    label: 'Group Score (Out of 11)',
+    getValue: (data) => data.team.evaluation?.groupScore?.toString() || 'Not Evaluated'
+  },
+  
+  // Evaluation fields - Individual Marks (One per line)
+  evaluationLearningContribution: {
+    label: 'Learning Contribution (Out of 2)',
+    getValue: (data) => {
+      if (!data.team.evaluation?.individualEvaluations?.length) return 'Not Evaluated';
+      return data.team.evaluation.individualEvaluations
+        .map((e: any) => `${e.memberName}: ${e.learningContribution}`)
+        .join('\n');
+    }
+  },
+  evaluationPresentationSkill: {
+    label: 'Presentation Skill (Out of 2)',
+    getValue: (data) => {
+      if (!data.team.evaluation?.individualEvaluations?.length) return 'Not Evaluated';
+      return data.team.evaluation.individualEvaluations
+        .map((e: any) => `${e.memberName}: ${e.presentationSkill}`)
+        .join('\n');
+    }
+  },
+  evaluationContributionToProject: {
+    label: 'Contribution to Project (Out of 2)',
+    getValue: (data) => {
+      if (!data.team.evaluation?.individualEvaluations?.length) return 'Not Evaluated';
+      return data.team.evaluation.individualEvaluations
+        .map((e: any) => `${e.memberName}: ${e.contributionToProject}`)
+        .join('\n');
+    }
+  },
+  evaluationIndividualScore: {
+    label: 'Individual Score (Out of 6)',
+    getValue: (data) => {
+      if (!data.team.evaluation?.individualEvaluations?.length) return 'Not Evaluated';
+      return data.team.evaluation.individualEvaluations
+        .map((e: any) => `${e.memberName}: ${e.individualScore}`)
+        .join('\n');
+    }
+  },
+  evaluationExternalMarks: {
+    label: 'External Evaluator Marks',
+    getValue: (data) => {
+      if (!data.team.evaluation?.individualEvaluations?.length) return 'Not Evaluated';
+      return data.team.evaluation.individualEvaluations
+        .map((e: any) => `${e.memberName}: ${e.externalEvaluatorMarks || 0}`)
+        .join('\n');
+    }
+  },
+  evaluationTotalIndividualMarks: {
+    label: 'Total Individual Marks',
+    getValue: (data) => {
+      if (!data.team.evaluation?.individualEvaluations?.length) return 'Not Evaluated';
+      return data.team.evaluation.individualEvaluations
+        .map((e: any) => `${e.memberName}: ${e.totalIndividualMarks}`)
+        .join('\n');
+    }
+  },
+  
+  // Evaluation Metadata
+  evaluationStatus: {
+    label: 'Evaluation Status',
+    getValue: (data) => data.team.evaluation?.status || 'Not Evaluated'
+  },
+  evaluationExternalEvaluatorName: {
+    label: 'External Evaluator Name',
+    getValue: (data) => data.team.evaluation?.externalEvaluatorName || 'N/A'
+  },
+  evaluationExternalEvaluatorEmail: {
+    label: 'External Evaluator Email',
+    getValue: (data) => data.team.evaluation?.externalEvaluatorEmail || 'N/A'
+  },
+  evaluationRemarks: {
+    label: 'Evaluation Remarks',
+    getValue: (data) => data.team.evaluation?.remarks || 'No Remarks'
+  },
+  evaluationDate: {
+    label: 'Evaluation Date',
+    getValue: (data) => data.team.evaluation?.evaluatedAt 
+      ? new Date(data.team.evaluation.evaluatedAt).toLocaleDateString() 
+      : 'Not Evaluated'
+  },
+  evaluationLastUpdated: {
+    label: 'Evaluation Last Updated',
+    getValue: (data) => data.team.evaluation?.updatedAt 
+      ? new Date(data.team.evaluation.updatedAt).toLocaleDateString() 
+      : 'N/A'
+  },
 });
 
 export async function POST(request: Request) {
@@ -296,6 +404,15 @@ export async function POST(request: Request) {
           },
           orderBy: {
             created_at: 'asc'
+          }
+        },
+        evaluation: {
+          include: {
+            individualEvaluations: {
+              include: {
+                teamMember: true
+              }
+            }
           }
         }
       },
@@ -407,6 +524,15 @@ export async function GET() {
             ppt_attachment: true,
             poster_attachment: true,
             remarks: true
+          }
+        },
+        evaluation: {
+          include: {
+            individualEvaluations: {
+              include: {
+                teamMember: true
+              }
+            }
           }
         }
       },

@@ -14,7 +14,11 @@ import {
   AlertCircle,
   Loader2,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  Award,
+  Link as LinkIcon,
+  Paperclip,
+  Star
 } from 'lucide-react';
 
 interface TeamMember {
@@ -22,6 +26,54 @@ interface TeamMember {
   name: string;
   email: string;
   role: string;
+}
+
+interface Proposal {
+  id: string;
+  title: string;
+  description: string;
+  state: string;
+  link: string | null;
+  attachment: string | null;
+  pptAttachment: string | null;
+  posterAttachment: string | null;
+  remarks: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface IndividualEvaluation {
+  id: string;
+  memberName: string;
+  memberEmail: string;
+  learningContribution: number;
+  presentationSkill: number;
+  contributionToProject: number;
+  individualScore: number;
+  externalEvaluatorMarks: number | null;
+  totalIndividualMarks: number;
+  teamMember: {
+    id: string;
+    name: string;
+    email: string;
+    role: string;
+  };
+}
+
+interface Evaluation {
+  id: string;
+  status: string;
+  posterMarks: number;
+  videoMarks: number;
+  reportMarks: number;
+  pptMarks: number;
+  groupScore: number;
+  externalEvaluatorName: string | null;
+  externalEvaluatorEmail: string | null;
+  individualEvaluations: IndividualEvaluation[];
+  remarks: string | null;
+  evaluatedAt: string;
+  updatedAt: string;
 }
 
 interface Team {
@@ -48,7 +100,8 @@ interface Team {
     };
     code: string;
   } | null;
-  proposals?: any[];
+  proposals: Proposal[];
+  evaluation: Evaluation | null;
 }
 
 const ViewDetailsPage = () => {
@@ -121,8 +174,12 @@ const ViewDetailsPage = () => {
   const getStatusBadge = (status: string) => {
     const statusConfig = {
       ACTIVE: { bg: 'bg-green-100', text: 'text-green-800', icon: CheckCircle },
+      APPROVED: { bg: 'bg-green-100', text: 'text-green-800', icon: CheckCircle },
       INACTIVE: { bg: 'bg-gray-100', text: 'text-gray-800', icon: XCircle },
+      REJECTED: { bg: 'bg-red-100', text: 'text-red-800', icon: XCircle },
       PENDING: { bg: 'bg-yellow-100', text: 'text-yellow-800', icon: Clock },
+      DRAFT: { bg: 'bg-blue-100', text: 'text-blue-800', icon: FileText },
+      SUBMITTED: { bg: 'bg-purple-100', text: 'text-purple-800', icon: CheckCircle },
     };
 
     const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.PENDING;
@@ -134,6 +191,14 @@ const ViewDetailsPage = () => {
         {status}
       </span>
     );
+  };
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    });
   };
 
   if (isLoading) {
@@ -174,7 +239,7 @@ const ViewDetailsPage = () => {
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900">Team Details</h1>
           <p className="mt-2 text-gray-600">
-            View comprehensive information about all teams, members, and mentors
+            View comprehensive information about all teams, members, proposals, and evaluations
           </p>
         </div>
 
@@ -192,23 +257,23 @@ const ViewDetailsPage = () => {
           <div className="bg-white rounded-lg shadow p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Active</p>
+                <p className="text-sm font-medium text-gray-600">Evaluated</p>
                 <p className="text-2xl font-bold text-green-600">
-                  {teams.filter(t => t.status === 'ACTIVE').length}
+                  {teams.filter(t => t.evaluation?.status === 'SUBMITTED').length}
                 </p>
               </div>
-              <CheckCircle className="h-8 w-8 text-green-500" />
+              <Award className="h-8 w-8 text-green-500" />
             </div>
           </div>
           <div className="bg-white rounded-lg shadow p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Pending</p>
-                <p className="text-2xl font-bold text-yellow-600">
-                  {teams.filter(t => t.status === 'PENDING').length}
+                <p className="text-sm font-medium text-gray-600">With Proposals</p>
+                <p className="text-2xl font-bold text-purple-600">
+                  {teams.filter(t => t.proposals && t.proposals.length > 0).length}
                 </p>
               </div>
-              <Clock className="h-8 w-8 text-yellow-500" />
+              <FileText className="h-8 w-8 text-purple-500" />
             </div>
           </div>
           <div className="bg-white rounded-lg shadow p-4">
@@ -219,7 +284,7 @@ const ViewDetailsPage = () => {
                   {teams.reduce((sum, team) => sum + team.members.length, 0)}
                 </p>
               </div>
-              <User className="h-8 w-8 text-purple-500" />
+              <User className="h-8 w-8 text-orange-500" />
             </div>
           </div>
         </div>
@@ -249,6 +314,7 @@ const ViewDetailsPage = () => {
               <option value="APPROVED">Approved</option>
               <option value="PENDING">Pending</option>
               <option value="REJECTED">Rejected</option>
+              <option value="ACTIVE">Active</option>
             </select>
           </div>
         </div>
@@ -278,6 +344,12 @@ const ViewDetailsPage = () => {
                             {team.teamNumber || 'No Team Number'}
                           </h3>
                           {getStatusBadge(team.status)}
+                          {team.evaluation && (
+                            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                              <Award className="w-3 h-3 mr-1" />
+                              Evaluated
+                            </span>
+                          )}
                         </div>
                         <p className="text-gray-600 mb-2">
                           {team.projectTitle || 'No Project Title'}
@@ -293,6 +365,12 @@ const ViewDetailsPage = () => {
                               Mentor: {team.mentor.name}
                             </div>
                           )}
+                          {team.proposals && team.proposals.length > 0 && (
+                            <div className="flex items-center">
+                              <FileText className="h-4 w-4 mr-1" />
+                              {team.proposals.length} proposal{team.proposals.length > 1 ? 's' : ''}
+                            </div>
+                          )}
                         </div>
                       </div>
                       {isExpanded ? (
@@ -306,76 +384,78 @@ const ViewDetailsPage = () => {
                   {/* Expanded Details */}
                   {isExpanded && (
                     <div className="border-t border-gray-200 p-6 bg-gray-50">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="grid grid-cols-1 gap-6">
                         {/* Mentor & Lead Info */}
-                        <div>
-                          <h4 className="font-semibold text-gray-900 mb-3 flex items-center">
-                            <User className="h-5 w-5 mr-2 text-blue-600" />
-                            Mentor & Lead
-                          </h4>
-                          <div className="space-y-3 bg-white rounded-lg p-4">
-                            {team.mentor ? (
-                              <div>
-                                <p className="text-sm font-medium text-gray-700">Mentor</p>
-                                <p className="text-gray-900">{team.mentor.name}</p>
-                                <p className="text-sm text-gray-500 flex items-center mt-1">
-                                  <Mail className="h-3 w-3 mr-1" />
-                                  {team.mentor.email}
-                                </p>
-                              </div>
-                            ) : (
-                              <p className="text-sm text-gray-500">No mentor assigned</p>
-                            )}
-                            
-                            {team.lead && (
-                              <div className="pt-3 border-t">
-                                <p className="text-sm font-medium text-gray-700">Team Lead</p>
-                                <p className="text-gray-900">{team.lead.name}</p>
-                                <p className="text-sm text-gray-500 flex items-center mt-1">
-                                  <Mail className="h-3 w-3 mr-1" />
-                                  {team.lead.email}
-                                </p>
-                              </div>
-                            )}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          <div>
+                            <h4 className="font-semibold text-gray-900 mb-3 flex items-center">
+                              <User className="h-5 w-5 mr-2 text-blue-600" />
+                              Mentor & Lead
+                            </h4>
+                            <div className="space-y-3 bg-white rounded-lg p-4">
+                              {team.mentor ? (
+                                <div>
+                                  <p className="text-sm font-medium text-gray-700">Mentor</p>
+                                  <p className="text-gray-900">{team.mentor.name}</p>
+                                  <p className="text-sm text-gray-500 flex items-center mt-1">
+                                    <Mail className="h-3 w-3 mr-1" />
+                                    {team.mentor.email}
+                                  </p>
+                                </div>
+                              ) : (
+                                <p className="text-sm text-gray-500">No mentor assigned</p>
+                              )}
+                              
+                              {team.lead && (
+                                <div className="pt-3 border-t">
+                                  <p className="text-sm font-medium text-gray-700">Team Lead</p>
+                                  <p className="text-gray-900">{team.lead.name}</p>
+                                  <p className="text-sm text-gray-500 flex items-center mt-1">
+                                    <Mail className="h-3 w-3 mr-1" />
+                                    {team.lead.email}
+                                  </p>
+                                </div>
+                              )}
+                            </div>
                           </div>
-                        </div>
 
-                        {/* Project Info */}
-                        <div>
-                          <h4 className="font-semibold text-gray-900 mb-3 flex items-center">
-                            <FileText className="h-5 w-5 mr-2 text-green-600" />
-                            Project Information
-                          </h4>
-                          <div className="bg-white rounded-lg p-4">
-                            {team.project ? (
-                              <div className="space-y-2">
-                                <div>
-                                  <p className="text-sm font-medium text-gray-700">Project Name</p>
-                                  <p className="text-gray-900">{team.project.name}</p>
-                                </div>
-                                <div>
-                                  <p className="text-sm font-medium text-gray-700">Code</p>
-                                  <p className="text-gray-900">{team.project.code}</p>
-                                </div>
-                                <div>
-                                  <p className="text-sm font-medium text-gray-700">Theme</p>
-                                  <p className="text-gray-900">{team.project.theme?.name || 'N/A'}</p>
-                                </div>
-                                {team.project.description && (
+                          {/* Project Info */}
+                          <div>
+                            <h4 className="font-semibold text-gray-900 mb-3 flex items-center">
+                              <FileText className="h-5 w-5 mr-2 text-green-600" />
+                              Project Information
+                            </h4>
+                            <div className="bg-white rounded-lg p-4">
+                              {team.project ? (
+                                <div className="space-y-2">
                                   <div>
-                                    <p className="text-sm font-medium text-gray-700">Description</p>
-                                    <p className="text-sm text-gray-600">{team.project.description}</p>
+                                    <p className="text-sm font-medium text-gray-700">Project Name</p>
+                                    <p className="text-gray-900">{team.project.name}</p>
                                   </div>
-                                )}
-                              </div>
-                            ) : (
-                              <p className="text-sm text-gray-500">No project assigned</p>
-                            )}
+                                  <div>
+                                    <p className="text-sm font-medium text-gray-700">Code</p>
+                                    <p className="text-gray-900">{team.project.code}</p>
+                                  </div>
+                                  <div>
+                                    <p className="text-sm font-medium text-gray-700">Theme</p>
+                                    <p className="text-gray-900">{team.project.theme?.name || 'N/A'}</p>
+                                  </div>
+                                  {team.project.description && (
+                                    <div>
+                                      <p className="text-sm font-medium text-gray-700">Description</p>
+                                      <p className="text-sm text-gray-600">{team.project.description}</p>
+                                    </div>
+                                  )}
+                                </div>
+                              ) : (
+                                <p className="text-sm text-gray-500">No project assigned</p>
+                              )}
+                            </div>
                           </div>
                         </div>
 
                         {/* Team Members */}
-                        <div className="md:col-span-2">
+                        <div>
                           <h4 className="font-semibold text-gray-900 mb-3 flex items-center">
                             <Users className="h-5 w-5 mr-2 text-purple-600" />
                             Team Members ({team.members.length})
@@ -423,6 +503,202 @@ const ViewDetailsPage = () => {
                             </table>
                           </div>
                         </div>
+
+                        {/* Proposals */}
+                        {team.proposals && team.proposals.length > 0 && (
+                          <div>
+                            <h4 className="font-semibold text-gray-900 mb-3 flex items-center">
+                              <FileText className="h-5 w-5 mr-2 text-indigo-600" />
+                              Proposals ({team.proposals.length})
+                            </h4>
+                            <div className="space-y-4">
+                              {team.proposals.map((proposal) => (
+                                <div key={proposal.id} className="bg-white rounded-lg p-4 border border-gray-200">
+                                  <div className="flex items-start justify-between mb-2">
+                                    <div className="flex-1">
+                                      <h5 className="font-medium text-gray-900">{proposal.title}</h5>
+                                      <p className="text-sm text-gray-600 mt-1">{proposal.description}</p>
+                                    </div>
+                                    {getStatusBadge(proposal.state)}
+                                  </div>
+                                  
+                                  <div className="mt-3 space-y-2">
+                                    {proposal.link && (
+                                      <div className="flex items-center text-sm text-blue-600">
+                                        <LinkIcon className="h-4 w-4 mr-2" />
+                                        <a href={proposal.link} target="_blank" rel="noopener noreferrer" className="hover:underline">
+                                          Video Link
+                                        </a>
+                                      </div>
+                                    )}
+                                    
+                                    <div className="flex flex-wrap gap-3 text-sm">
+                                      {proposal.attachment && (
+                                        <div className="flex items-center text-gray-600">
+                                          <Paperclip className="h-4 w-4 mr-1" />
+                                          Report Attached
+                                        </div>
+                                      )}
+                                      {proposal.pptAttachment && (
+                                        <div className="flex items-center text-gray-600">
+                                          <Paperclip className="h-4 w-4 mr-1" />
+                                          PPT Attached
+                                        </div>
+                                      )}
+                                      {proposal.posterAttachment && (
+                                        <div className="flex items-center text-gray-600">
+                                          <Paperclip className="h-4 w-4 mr-1" />
+                                          Poster Attached
+                                        </div>
+                                      )}
+                                    </div>
+
+                                    {proposal.remarks && (
+                                      <div className="mt-2 p-2 bg-yellow-50 rounded border border-yellow-200">
+                                        <p className="text-xs font-medium text-yellow-800">Remarks:</p>
+                                        <p className="text-sm text-yellow-900">{proposal.remarks}</p>
+                                      </div>
+                                    )}
+                                    
+                                    <div className="flex items-center gap-4 text-xs text-gray-500 mt-2">
+                                      <div className="flex items-center">
+                                        <Calendar className="h-3 w-3 mr-1" />
+                                        Created: {formatDate(proposal.createdAt)}
+                                      </div>
+                                      <div className="flex items-center">
+                                        <Calendar className="h-3 w-3 mr-1" />
+                                        Updated: {formatDate(proposal.updatedAt)}
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Evaluation */}
+                        {team.evaluation && (
+                          <div>
+                            <h4 className="font-semibold text-gray-900 mb-3 flex items-center">
+                              <Award className="h-5 w-5 mr-2 text-yellow-600" />
+                              Evaluation Results
+                            </h4>
+                            <div className="bg-white rounded-lg p-4 border border-gray-200">
+                              {/* Status and External Evaluator */}
+                              <div className="flex items-center justify-between mb-4">
+                                {getStatusBadge(team.evaluation.status)}
+                                {team.evaluation.externalEvaluatorName && (
+                                  <div className="text-sm text-gray-600">
+                                    <span className="font-medium">External Evaluator:</span> {team.evaluation.externalEvaluatorName}
+                                    {team.evaluation.externalEvaluatorEmail && (
+                                      <span className="text-gray-500 ml-2">({team.evaluation.externalEvaluatorEmail})</span>
+                                    )}
+                                  </div>
+                                )}
+                              </div>
+
+                              {/* Group Marks */}
+                              <div className="mb-4">
+                                <h5 className="font-medium text-gray-900 mb-2">Group Marks</h5>
+                                <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+                                  <div className="bg-blue-50 p-3 rounded">
+                                    <p className="text-xs text-blue-600 font-medium">Poster</p>
+                                    <p className="text-lg font-bold text-blue-900">{team.evaluation.posterMarks}/2</p>
+                                  </div>
+                                  <div className="bg-green-50 p-3 rounded">
+                                    <p className="text-xs text-green-600 font-medium">Video</p>
+                                    <p className="text-lg font-bold text-green-900">{team.evaluation.videoMarks}/3</p>
+                                  </div>
+                                  <div className="bg-purple-50 p-3 rounded">
+                                    <p className="text-xs text-purple-600 font-medium">Report</p>
+                                    <p className="text-lg font-bold text-purple-900">{team.evaluation.reportMarks}/3</p>
+                                  </div>
+                                  <div className="bg-orange-50 p-3 rounded">
+                                    <p className="text-xs text-orange-600 font-medium">PPT</p>
+                                    <p className="text-lg font-bold text-orange-900">{team.evaluation.pptMarks}/3</p>
+                                  </div>
+                                  <div className="bg-yellow-50 p-3 rounded">
+                                    <p className="text-xs text-yellow-600 font-medium">Total</p>
+                                    <p className="text-lg font-bold text-yellow-900">{team.evaluation.groupScore}/11</p>
+                                  </div>
+                                </div>
+                              </div>
+
+                              {/* Individual Marks */}
+                              {team.evaluation.individualEvaluations && team.evaluation.individualEvaluations.length > 0 && (
+                                <div>
+                                  <h5 className="font-medium text-gray-900 mb-2">Individual Marks</h5>
+                                  <div className="overflow-x-auto">
+                                    <table className="min-w-full divide-y divide-gray-200">
+                                      <thead className="bg-gray-50">
+                                        <tr>
+                                          <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Member</th>
+                                          <th className="px-3 py-2 text-center text-xs font-medium text-gray-500 uppercase">Learning</th>
+                                          <th className="px-3 py-2 text-center text-xs font-medium text-gray-500 uppercase">Presentation</th>
+                                          <th className="px-3 py-2 text-center text-xs font-medium text-gray-500 uppercase">Contribution</th>
+                                          <th className="px-3 py-2 text-center text-xs font-medium text-gray-500 uppercase">Score (6)</th>
+                                          <th className="px-3 py-2 text-center text-xs font-medium text-gray-500 uppercase">External</th>
+                                          <th className="px-3 py-2 text-center text-xs font-medium text-gray-500 uppercase">Total</th>
+                                        </tr>
+                                      </thead>
+                                      <tbody className="bg-white divide-y divide-gray-200">
+                                        {team.evaluation.individualEvaluations.map((evalItem) => (
+                                          <tr key={evalItem.id} className="hover:bg-gray-50">
+                                            <td className="px-3 py-2 text-sm">
+                                              <div>
+                                                <p className="font-medium text-gray-900">{evalItem.memberName}</p>
+                                                <p className="text-xs text-gray-500">{evalItem.teamMember.role}</p>
+                                              </div>
+                                            </td>
+                                            <td className="px-3 py-2 text-center text-sm text-gray-900">
+                                              {evalItem.learningContribution}/2
+                                            </td>
+                                            <td className="px-3 py-2 text-center text-sm text-gray-900">
+                                              {evalItem.presentationSkill}/2
+                                            </td>
+                                            <td className="px-3 py-2 text-center text-sm text-gray-900">
+                                              {evalItem.contributionToProject}/2
+                                            </td>
+                                            <td className="px-3 py-2 text-center text-sm font-medium text-blue-900">
+                                              {evalItem.individualScore}/6
+                                            </td>
+                                            <td className="px-3 py-2 text-center text-sm text-gray-900">
+                                              {evalItem.externalEvaluatorMarks || 0}
+                                            </td>
+                                            <td className="px-3 py-2 text-center text-sm font-bold text-green-900">
+                                              {evalItem.totalIndividualMarks}
+                                            </td>
+                                          </tr>
+                                        ))}
+                                      </tbody>
+                                    </table>
+                                  </div>
+                                </div>
+                              )}
+
+                              {/* Evaluation Remarks */}
+                              {team.evaluation.remarks && (
+                                <div className="mt-4 p-3 bg-gray-50 rounded border border-gray-200">
+                                  <p className="text-xs font-medium text-gray-700 mb-1">Evaluation Remarks:</p>
+                                  <p className="text-sm text-gray-900">{team.evaluation.remarks}</p>
+                                </div>
+                              )}
+
+                              {/* Evaluation Dates */}
+                              <div className="mt-4 flex items-center gap-4 text-xs text-gray-500">
+                                <div className="flex items-center">
+                                  <Calendar className="h-3 w-3 mr-1" />
+                                  Evaluated: {formatDate(team.evaluation.evaluatedAt)}
+                                </div>
+                                <div className="flex items-center">
+                                  <Calendar className="h-3 w-3 mr-1" />
+                                  Updated: {formatDate(team.evaluation.updatedAt)}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        )}
                       </div>
                     </div>
                   )}
