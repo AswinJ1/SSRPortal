@@ -5,8 +5,6 @@ import { auth } from '@/lib/auth';
 import { constants } from 'fs';
 
 const UPLOAD_DIR = join(process.cwd(), 'public', 'uploads');
-// const UPLOAD_DIR = '/home/azureuser/uploads'
-
 
 export async function POST(req: Request) {
   try {
@@ -18,7 +16,7 @@ export async function POST(req: Request) {
       return new NextResponse('Unauthorized', { status: 401 });
     }
 
-    console.log(`User: ${session.user.email}`);
+    console.log(`User ID: ${session.user.id}`);
     console.log(`Upload directory: ${UPLOAD_DIR}`);
 
     // Check if directory exists and is writable
@@ -80,7 +78,7 @@ export async function POST(req: Request) {
     const filename = `${timestamp}-${originalName}`;
     const filepath = join(UPLOAD_DIR, filename);
 
-    console.log(`Saving to: ${filepath}`);
+    console.log(`Saving file: ${filename}`);
 
     try {
       const bytes = await file.arrayBuffer();
@@ -116,13 +114,15 @@ export async function POST(req: Request) {
     });
 
   } catch (error) {
+    // Log full error details server-side only
     console.error('=== Upload Error ===');
-    console.error('Error details:', error);
+    console.error('Error type:', error?.constructor?.name);
+    console.error('Error message:', error instanceof Error ? error.message : 'Unknown error');
     console.error('Error stack:', error instanceof Error ? error.stack : 'No stack trace');
-    return new NextResponse(
-      `Error uploading file: ${error instanceof Error ? error.message : 'Unknown error'}`, 
-      { status: 500 }
-    );
+    console.error('Full error object:', error);
+    console.error('=== End Upload Error ===');
+    
+    // Return generic error message to client (no sensitive info)
+    return new NextResponse('Error uploading file', { status: 500 });
   }
 }
-
