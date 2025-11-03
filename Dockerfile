@@ -42,9 +42,6 @@ RUN apk update \
 ENV NODE_ENV=production
 RUN addgroup --system --gid 1001 nodejs && adduser --system --uid 1001 nextjs
 RUN npm install -g prisma
-# Create uploads directory with proper permissions ← ADD THIS
-RUN mkdir -p /app/public/uploads && \
-    chmod 755 /app/public/uploads
 
 COPY --from=builder --chown=nextjs:nodejs /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/prisma ./prisma
@@ -53,6 +50,10 @@ COPY --from=builder --chown=nextjs:nodejs /app/node_modules/@prisma ./node_modul
 COPY --from=builder --chown=nextjs:nodejs /app/node_modules/prisma ./node_modules/prisma
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+# Create uploads directory AFTER copies with correct permissions
+RUN mkdir -p /app/public/uploads && \
+    chown -R nextjs:nodejs /app/public/uploads && \
+    chmod 775 /app/public/uploads
 
 USER nextjs
 EXPOSE 3000
