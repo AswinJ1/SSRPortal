@@ -578,22 +578,25 @@ export default function ProjectForm({ existingProposal, onEditMode }: ProjectFor
  const onSubmit = async (data: ProjectFormData) => {
   setIsSubmitting(true);
   
-  // Check if files are uploaded (required)
-  if (selectedFiles.length === 0 && (!existingProposal?.attachment && !loadedProposal?.attachment)) {
+  // Get the current proposal (either from prop or loaded state)
+  const currentProposal = existingProposal || loadedProposal;
+  
+  // Check if files are uploaded (required) - allow if existing files present
+  if (selectedFiles.length === 0 && !currentProposal?.attachment) {
     setFileError('At least one file must be uploaded');
     setIsSubmitting(false);
     return;
   }
   
-  // Check if poster files are uploaded (required)
-  if (selectedPosterFiles.length === 0 && (!existingProposal?.poster_attachment && !loadedProposal?.poster_attachment)) {
+  // Check if poster files are uploaded (required) - allow if existing files present
+  if (selectedPosterFiles.length === 0 && !currentProposal?.poster_attachment) {
     setPosterFileError('At least one poster file must be uploaded');
     setIsSubmitting(false);
     return;
   }
   
-  // Check if PPT files are uploaded (required)
-  if (selectedPptFiles.length === 0 && (!existingProposal?.ppt_attachment && !loadedProposal?.ppt_attachment)) {
+  // Check if PPT files are uploaded (required) - allow if existing files present
+  if (selectedPptFiles.length === 0 && !currentProposal?.ppt_attachment) {
     setPptFileError('At least one PPT file must be uploaded');
     setIsSubmitting(false);
     return;
@@ -687,9 +690,16 @@ export default function ProjectForm({ existingProposal, onEditMode }: ProjectFor
       title: data.title,
       description: data.description,
       content: data.content + '\n\n<!-- METADATA:' + JSON.stringify(metadata) + ' -->',
-      attachment: uploadedFileUrls.join(','),
-      poster_attachment: uploadedPosterUrls.join(','),
-      ppt_attachment: uploadedPptUrls.join(','),
+      // Preserve existing attachments if no new files uploaded
+      attachment: uploadedFileUrls.length > 0 
+        ? uploadedFileUrls.join(',') 
+        : (currentProposal?.attachment || ''),
+      poster_attachment: uploadedPosterUrls.length > 0 
+        ? uploadedPosterUrls.join(',') 
+        : (currentProposal?.poster_attachment || ''),
+      ppt_attachment: uploadedPptUrls.length > 0 
+        ? uploadedPptUrls.join(',') 
+        : (currentProposal?.ppt_attachment || ''),
       link: data.gdriveLink || '',
       _metadata: metadata
     };
@@ -735,7 +745,7 @@ export default function ProjectForm({ existingProposal, onEditMode }: ProjectFor
     console.log('Server response:', result);
     
     if (result.success) {
-      const message = existingProposal 
+      const message = currentProposal 
         ? 'Proposal updated successfully! Redirecting...'
         : 'Proposal submitted successfully! Redirecting...';
         
@@ -1263,7 +1273,7 @@ export default function ProjectForm({ existingProposal, onEditMode }: ProjectFor
           <h2 className="text-xl font-semibold text-gray-900 mb-6 flex items-center">
             <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center mr-3">
               <svg className="w-4 h-4 text-green-600" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M4 4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2H4zm8 8a2 2 0 11-4 0 2 2 0 014 0zm-2-6a4 4 0 100 8 4 4 0 000-8z" clipRule="evenodd" />
+                <path fillRule="evenodd" d="M4 4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2  0 00-2-2H4zm8 8a2 2 0 11-4 0 2 2 0 014 0zm-2-6a4 4 0 100 8 4 4 0 000-8z" clipRule="evenodd" />
               </svg>
             </div>
             Google Drive Link with Photos and Videos
