@@ -266,6 +266,62 @@ interface ProjectFormProps {
   onEditMode?: (isEdit: boolean) => void;
 }
 
+const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+// Replace the uploadFiles function with this version that includes retry logic:
+const uploadFiles = async (files: File[], maxRetries = 3): Promise<string[]> => {
+  const uploadedUrls: string[] = [];
+  
+  for (const file of files) {
+    let lastError: Error | null = null;
+    let uploaded = false;
+    
+    // Try uploading with retries
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        console.log(`Uploading ${file.name} - Attempt ${attempt}/${maxRetries}`);
+        
+        const formData = new FormData();
+        formData.append('file', file);
+        
+        const uploadResponse = await fetch('/api/upload', {
+          method: 'POST',
+          body: formData,
+        });
+        
+        if (uploadResponse.ok) {
+          const uploadResult = await uploadResponse.json();
+          uploadedUrls.push(uploadResult.url);
+          uploaded = true;
+          console.log(`✅ Successfully uploaded ${file.name} on attempt ${attempt}`);
+          break; // Success - exit retry loop
+        } else {
+          throw new Error(`Upload failed with status ${uploadResponse.status}`);
+        }
+      } catch (error) {
+        lastError = error instanceof Error ? error : new Error('Unknown error');
+        console.error(`❌ Failed to upload ${file.name} on attempt ${attempt}:`, error);
+        
+        // If not the last attempt, wait before retrying
+        if (attempt < maxRetries) {
+          const waitTime = attempt * 2000; // Progressive delay: 2s, 4s, 6s
+          console.log(`⏳ Waiting ${waitTime}ms before retry...`);
+          await delay(waitTime);
+        }
+      }
+    }
+    
+    // If all retries failed, throw error
+    if (!uploaded) {
+      throw new Error(
+        `Failed to upload ${file.name} after ${maxRetries} attempts. ${lastError?.message || 'Unknown error'}`
+      );
+    }
+  }
+  
+  return uploadedUrls;
+};
+
 export default function ProjectForm({ existingProposal, onEditMode }: ProjectFormProps) {
   const [selectedState, setSelectedState] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -410,34 +466,6 @@ export default function ProjectForm({ existingProposal, onEditMode }: ProjectFor
   // Remove selected PPT file
   const removePptFile = (index: number) => {
     setSelectedPptFiles(prev => prev.filter((_, i) => i !== index));
-  };
-
-  // Upload files to server
-  const uploadFiles = async (files: File[]): Promise<string[]> => {
-    const uploadedUrls: string[] = [];
-    
-    for (const file of files) {
-      const formData = new FormData();
-      formData.append('file', file);
-      
-      try {
-        const uploadResponse = await fetch('/api/upload', {
-          method: 'POST',
-          body: formData,
-        });
-        
-        if (uploadResponse.ok) {
-          const uploadResult = await uploadResponse.json();
-          uploadedUrls.push(uploadResult.url);
-        } else {
-          console.error('Failed to upload file:', file.name);
-        }
-      } catch (error) {
-        console.error('Error uploading file:', file.name, error);
-      }
-    }
-    
-    return uploadedUrls;
   };
 
   // Pre-fill form with existing proposal data if editing
@@ -627,45 +655,57 @@ export default function ProjectForm({ existingProposal, onEditMode }: ProjectFor
       if (!authData.data.hasTeam) {
         throw new Error('You must be part of a team to submit a proposal. Please join or create a team first.');
       }
-    } catch (e) {
+    } catch (e: any) {
       console.error('Auth error:', e);
       throw new Error(e.message || 'Authentication error. Please try logging in again.');
     }
     
-    // Upload files if any are selected
+    // Upload files if any are selected (with retry logic)
     let uploadedFileUrls: string[] = [];
     let uploadedPosterUrls: string[] = [];
     let uploadedPptUrls: string[] = [];
     
-    if (selectedFiles.length > 0) {
+    try {
+      if (selectedFiles.length > 0) {
+        setStatusMessage({
+          type: 'info',
+          message: `Uploading ${selectedFiles.length} supporting file(s)... (this may take a few moments)`
+        });
+        uploadedFileUrls = await uploadFiles(selectedFiles, 4); // 4 retries
+        console.log('✅ All supporting files uploaded:', uploadedFileUrls);
+      }
+      
+      if (selectedPosterFiles.length > 0) {
+        setStatusMessage({
+          type: 'info',
+          message: `Uploading ${selectedPosterFiles.length} poster file(s)... (this may take a few moments)`
+        });
+        uploadedPosterUrls = await uploadFiles(selectedPosterFiles, 4); // 4 retries
+        console.log('✅ All poster files uploaded:', uploadedPosterUrls);
+      }
+      
+      if (selectedPptFiles.length > 0) {
+        setStatusMessage({
+          type: 'info',
+          message: `Uploading ${selectedPptFiles.length} PPT file(s)... (this may take a few moments)`
+        });
+        uploadedPptUrls = await uploadFiles(selectedPptFiles, 4); // 4 retries
+        console.log('✅ All PPT files uploaded:', uploadedPptUrls);
+      }
+    } catch (uploadError: any) {
+      // If upload fails after all retries, show clear error message
+      console.error('Upload failed after all retries:', uploadError);
       setStatusMessage({
-        type: 'info',
-        message: 'Uploading supporting files...'
+        type: 'error',
+        message: `File upload failed: ${uploadError.message}. Please check your internet connection and try again.`
       });
-      uploadedFileUrls = await uploadFiles(selectedFiles);
-      console.log('Supporting files uploaded:', uploadedFileUrls);
-    }
-    
-    if (selectedPosterFiles.length > 0) {
-      setStatusMessage({
-        type: 'info',
-        message: 'Uploading poster files...'
-      });
-      uploadedPosterUrls = await uploadFiles(selectedPosterFiles);
-      console.log('Poster files uploaded:', uploadedPosterUrls);
-    }
-    
-    if (selectedPptFiles.length > 0) {
-      setStatusMessage({
-        type: 'info',
-        message: 'Uploading PPT files...'
-      });
-      uploadedPptUrls = await uploadFiles(selectedPptFiles);
-      console.log('PPT files uploaded:', uploadedPptUrls);
+      setIsSubmitting(false);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return; // Stop submission
     }
     
     // Wait a bit to ensure all uploads are complete
-    await new Promise(resolve => setTimeout(resolve, 500));
+    await delay(1000);
     
     setStatusMessage({
       type: 'info',
@@ -755,7 +795,7 @@ export default function ProjectForm({ existingProposal, onEditMode }: ProjectFor
       });
       
       // Wait to ensure the success message is visible and all network operations are complete
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      await delay(2000);
       
       // Now redirect
       window.location.href = '/dashboard/student/proposals';
@@ -1273,7 +1313,7 @@ export default function ProjectForm({ existingProposal, onEditMode }: ProjectFor
           <h2 className="text-xl font-semibold text-gray-900 mb-6 flex items-center">
             <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center mr-3">
               <svg className="w-4 h-4 text-green-600" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M4 4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2  0 00-2-2H4zm8 8a2 2 0 11-4 0 2 2 0 014 0zm-2-6a4 4 0 100 8 4 4 0 000-8z" clipRule="evenodd" />
+                <path fillRule="evenodd" d="M4 4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2H4zm8 8a2 2 0 11-4 0 2 2 0 014 0zm-2-6a4 4 0 100 8 4 4 0 000-8z" clipRule="evenodd" />
               </svg>
             </div>
             Google Drive Link with Photos and Videos
