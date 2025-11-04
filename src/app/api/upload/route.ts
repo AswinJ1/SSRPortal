@@ -3,11 +3,11 @@ import { writeFile, mkdir, access, stat } from 'fs/promises';
 import { join } from 'path';
 import { auth } from '@/lib/auth';
 import { constants } from 'fs';
-// In your app/api/upload/route.ts (or wherever your upload route is)
-export const runtime = 'nodejs';
-export const maxDuration = 300; // 5 minutes
 
 const UPLOAD_DIR = join(process.cwd(), 'public', 'uploads');
+
+export const runtime = 'nodejs';
+export const maxDuration = 300; // 5 minutes
 
 export async function POST(req: Request) {
   try {
@@ -37,7 +37,6 @@ export async function POST(req: Request) {
         console.log('Upload directory is writable');
       } catch (writeError) {
         console.error('Upload directory exists but is not writable');
-        console.error('Directory permissions check failed:', writeError);
         return new NextResponse('Upload configuration error', { status: 500 });
       }
       
@@ -53,12 +52,12 @@ export async function POST(req: Request) {
           await access(UPLOAD_DIR, constants.W_OK);
           console.log('New directory is writable');
         } catch (mkdirError) {
-          console.error('Failed to create upload directory:', mkdirError);
+          console.error('Failed to create upload directory');
           return new NextResponse('Upload configuration error', { status: 500 });
         }
       } else {
         // Some other error occurred
-        console.error('Error checking upload directory:', statError);
+        console.error('Error checking upload directory');
         return new NextResponse('Upload configuration error', { status: 500 });
       }
     }
@@ -73,12 +72,6 @@ export async function POST(req: Request) {
 
     console.log(`File size: ${file.size} bytes (${(file.size / 1024 / 1024).toFixed(2)} MB)`);
     console.log(`File type: ${file.type}`);
-
-    // Extract extension safely (handles "file.tar.gz" correctly)
-    const lastDotIndex = file.name.lastIndexOf('.');
-    const extension = lastDotIndex !== -1 
-      ? file.name.substring(lastDotIndex).toLowerCase().trim() 
-      : '';
 
     // Validate file type
     const allowedTypes = [
@@ -101,23 +94,49 @@ export async function POST(req: Request) {
       return new NextResponse('Invalid file type. Supported: PDF, DOC, DOCX, PPT, PPTX, MP4, MOV, AVI, JPG, PNG, GIF', { status: 400 });
     }
 
-    // Enforce size limit manually
+    // Enforce size limit
     const maxSize = 50 * 1024 * 1024; // 50MB
     if (file.size > maxSize) {
       console.error(`File too large: ${file.size} bytes (max: ${maxSize})`);
-      return new NextResponse('File size exceeds the 50MB limit.', { status: 400 });
+      return new NextResponse('File size exceeds the 50MB limit', { status: 400 });
     }
 
-    // Generate unique filename with better sanitization
+    // Generate unique filename with proper sanitization
     const timestamp = Date.now();
-    const originalName = file.name
-      .trim()                           // "Onsite selction Process 2025_V 2.1 " → "Onsite selction Process 2025_V 2.1"
-      .replace(/\s+/g, '_')            // "Onsite_selction_Process_2025_V_2.1"
-      .replace(/_{2,}/g, '_')          // Remove multiple underscores if any
-      .replace(/[^a-zA-Z0-9._-]/g, '') // Remove any remaining special chars
-      .replace(/^[._-]+|[._-]+$/g, '') // Remove leading/trailing dots/underscores
-      .substring(0, 100);
-    const filename = `${timestamp}-${originalName}`;
+    
+    // Extract extension separately (handles "file.tar.gz" correctly)
+    const lastDotIndex = file.name.lastIndexOf('.');
+    const extension = lastDotIndex !== -1 
+      ? file.name.substring(lastDotIndex).toLowerCase().trim() 
+      : '';
+    
+    // Get base name without extension
+    const baseName = lastDotIndex !== -1 
+      ? file.name.substring(0, lastDotIndex) 
+      : file.name;
+    
+    // Sanitize only the base name
+    let safeBase = baseName
+      .trim()                           // Remove leading/trailing spaces
+      .replace(/\s+/g, '_')            // Collapse spaces to single underscore
+      .replace(/[^a-zA-Z0-9._-]/g, '') // Remove invalid characters
+      .replace(/_{2,}/g, '_')          // Collapse multiple underscores to single
+      .replace(/^[._-]+|[._-]+$/g, ''); // Remove leading/trailing dots/underscores/hyphens
+    
+    // If base becomes empty, use default
+    if (!safeBase) {
+      safeBase = 'file';
+    }
+    
+    // Enforce total length: timestamp(13) + separator(1) + base + extension <= 100
+    const timestampStr = timestamp.toString();
+    const maxBaseLength = 100 - timestampStr.length - 1 - extension.length;
+    if (safeBase.length > maxBaseLength && maxBaseLength > 0) {
+      safeBase = safeBase.substring(0, maxBaseLength);
+    }
+    
+    // Recompose filename with extension always preserved
+    const filename = `${timestamp}-${safeBase}${extension}`;
     const filepath = join(UPLOAD_DIR, filename);
 
     console.log(`Saving file: ${filename}`);
@@ -140,7 +159,7 @@ export async function POST(req: Request) {
       }
 
     } catch (writeError) {
-      console.error('File write error:', writeError);
+      console.error('File write error');
       throw writeError;
     }
 
@@ -161,10 +180,9 @@ export async function POST(req: Request) {
     console.error('Error type:', error?.constructor?.name);
     console.error('Error message:', error instanceof Error ? error.message : 'Unknown error');
     console.error('Error stack:', error instanceof Error ? error.stack : 'No stack trace');
-    console.error('Full error object:', error);
     console.error('=== End Upload Error ===');
     
-    // Return generic error message to client (no sensitive info)
+    // Return generic error message to client
     return new NextResponse('Error uploading file', { status: 500 });
   }
 }
