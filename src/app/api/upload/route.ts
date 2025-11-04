@@ -105,10 +105,15 @@ export async function POST(req: Request) {
     const timestamp = Date.now();
     
     // Extract extension separately (handles "file.tar.gz" correctly)
-    const lastDotIndex = file.name.lastIndexOf('.');
-    const extension = lastDotIndex !== -1 
-      ? file.name.substring(lastDotIndex).toLowerCase().trim() 
+       const lastDotIndex = file.name.lastIndexOf('.');
+    const rawExtension = lastDotIndex !== -1
+      ? file.name.substring(lastDotIndex + 1)
       : '';
+    const sanitizedExtension = rawExtension
+      .toLowerCase()
+      .replace(/[^a-z0-9]/g, '')
+      .substring(0, 10);
+    const extension = sanitizedExtension ? `.${sanitizedExtension}` : '';
     
     // Get base name without extension
     const baseName = lastDotIndex !== -1 
@@ -130,8 +135,8 @@ export async function POST(req: Request) {
     
     // Enforce total length: timestamp(13) + separator(1) + base + extension <= 100
     const timestampStr = timestamp.toString();
-    const maxBaseLength = 100 - timestampStr.length - 1 - extension.length;
-    if (safeBase.length > maxBaseLength && maxBaseLength > 0) {
+    const maxBaseLength = Math.max(0, 100 - timestampStr.length - 1 - extension.length);
+    if (safeBase.length > maxBaseLength) {
       safeBase = safeBase.substring(0, maxBaseLength);
     }
     
