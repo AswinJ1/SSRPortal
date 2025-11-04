@@ -575,193 +575,196 @@ export default function ProjectForm({ existingProposal, onEditMode }: ProjectFor
     }
   }, [existingProposal, loadedProposal, setValue, onEditMode]);
 
-  const onSubmit = async (data: ProjectFormData) => {
-    setIsSubmitting(true);
-    
-    // Check if files are uploaded (required)
-    if (selectedFiles.length === 0 && (!existingProposal?.attachment && !loadedProposal?.attachment)) {
-      setFileError('At least one file must be uploaded');
-      setIsSubmitting(false);
-      return;
-    }
-    
-    // Check if poster files are uploaded (required)
-    if (selectedPosterFiles.length === 0 && (!existingProposal?.poster_attachment && !loadedProposal?.poster_attachment)) {
-      setPosterFileError('At least one poster file must be uploaded');
-      setIsSubmitting(false);
-      return;
-    }
-    
-    // Check if PPT files are uploaded (required)
-    if (selectedPptFiles.length === 0 && (!existingProposal?.ppt_attachment && !loadedProposal?.ppt_attachment)) {
-      setPptFileError('At least one PPT file must be uploaded');
-      setIsSubmitting(false);
-      return;
-    }
-    
-    // Clear file errors if validation passes
-    setFileError(null);
-    setPosterFileError(null);
-    setPptFileError(null);
-    
+ const onSubmit = async (data: ProjectFormData) => {
+  setIsSubmitting(true);
+  
+  // Check if files are uploaded (required)
+  if (selectedFiles.length === 0 && (!existingProposal?.attachment && !loadedProposal?.attachment)) {
+    setFileError('At least one file must be uploaded');
+    setIsSubmitting(false);
+    return;
+  }
+  
+  // Check if poster files are uploaded (required)
+  if (selectedPosterFiles.length === 0 && (!existingProposal?.poster_attachment && !loadedProposal?.poster_attachment)) {
+    setPosterFileError('At least one poster file must be uploaded');
+    setIsSubmitting(false);
+    return;
+  }
+  
+  // Check if PPT files are uploaded (required)
+  if (selectedPptFiles.length === 0 && (!existingProposal?.ppt_attachment && !loadedProposal?.ppt_attachment)) {
+    setPptFileError('At least one PPT file must be uploaded');
+    setIsSubmitting(false);
+    return;
+  }
+  
+  // Clear file errors if validation passes
+  setFileError(null);
+  setPosterFileError(null);
+  setPptFileError(null);
+  
+  try {
+    // Check if user is logged in and has a team
     try {
-      // Check if user is logged in and has a team
-      try {
-        const authCheck = await fetch('/api/test/auth');
-        if (!authCheck.ok) {
-          const authError = await authCheck.json();
-          console.error('Auth check failed:', authError);
-          throw new Error(authError.message || 'Authentication failed. Please try logging in again.');
-        }
-        
-        const authData = await authCheck.json();
-        console.log('Auth check succeeded:', authData);
-        
-        if (!authData.success) {
-          throw new Error('Authentication error');
-        }
-        
-        if (!authData.data.hasTeam) {
-          throw new Error('You must be part of a team to submit a proposal. Please join or create a team first.');
-        }
-      } catch (e) {
-        console.error('Auth error:', e);
-        throw new Error(e.message || 'Authentication error. Please try logging in again.');
+      const authCheck = await fetch('/api/test/auth');
+      if (!authCheck.ok) {
+        const authError = await authCheck.json();
+        console.error('Auth check failed:', authError);
+        throw new Error(authError.message || 'Authentication failed. Please try logging in again.');
       }
       
-      // Upload files if any are selected
-      let uploadedFileUrls: string[] = [];
-      let uploadedPosterUrls: string[] = [];
-      let uploadedPptUrls: string[] = [];
+      const authData = await authCheck.json();
+      console.log('Auth check succeeded:', authData);
       
-      if (selectedFiles.length > 0) {
-        setStatusMessage({
-          type: 'info',
-          message: 'Uploading files...'
-        });
-        uploadedFileUrls = await uploadFiles(selectedFiles);
+      if (!authData.success) {
+        throw new Error('Authentication error');
       }
       
-      if (selectedPosterFiles.length > 0) {
-        setStatusMessage({
-          type: 'info',
-          message: 'Uploading poster files...'
-        });
-        uploadedPosterUrls = await uploadFiles(selectedPosterFiles);
+      if (!authData.data.hasTeam) {
+        throw new Error('You must be part of a team to submit a proposal. Please join or create a team first.');
       }
-      
-      if (selectedPptFiles.length > 0) {
-        setStatusMessage({
-          type: 'info',
-          message: 'Uploading PPT files...'
-        });
-        uploadedPptUrls = await uploadFiles(selectedPptFiles);
-      }
-      
-      // Only include fields that match the API schema
-      const metadata = {
-        category: data.category,
-        locationMode: data.locationMode,
-        state: data.state || '',
-        district: data.district || '',
-        city: data.city || '',
-        placeVisited: data.placeVisited || '',
-        travelTime: data.travelTime || '',
-        executionTime: data.executionTime || '',
-        completionDate: data.completionDate || '',
-        totalParticipants: data.totalParticipants || '',
-      };
-
-      const payload = {
-        title: data.title,
-        description: data.description,
-        content: data.content + '\n\n<!-- METADATA:' + JSON.stringify(metadata) + ' -->',  // Store metadata as hidden HTML comment in content
-        // Optional fields
-        attachment: uploadedFileUrls.join(','),  // Store multiple file URLs as comma-separated string
-        poster_attachment: uploadedPosterUrls.join(','),  // Store poster files
-        ppt_attachment: uploadedPptUrls.join(','),  // Store PPT files
-        link: data.gdriveLink || '',  // Store Google Drive link in the link field
-        
-        // Extra metadata fields (these won't be used by the API validation
-        // but will be available in the raw request body)
-        _metadata: metadata
-      };
-
-      console.log('Submitting payload:', payload);
-
-      // Always use POST to /api/student/proposals - it handles both create and update logic
-      const apiUrl = '/api/student/proposals';
-      const method = 'POST';
-
-      const response = await fetch(apiUrl, {
-        method: method,
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payload),
-        cache: 'no-store',
-      });
-
-      console.log('Response status:', response.status);
-
-      if (!response.ok) {
-        // Try to parse as JSON first
-        let errorData;
-        try {
-          errorData = await response.json();
-          console.error('Server error (JSON):', errorData);
-        } catch (e) {
-          // If not JSON, get as text
-          const errorText = await response.text();
-          console.error('Server error (Text):', errorText);
-        }
-        
-        if (errorData?.error === 'Team not found') {
-          throw new Error(`Your team information could not be found. Please make sure you have joined or created a team.`);
-        } else if (errorData?.error === 'Proposal exists') {
-          throw new Error(`You already have a proposal submitted. ${errorData.message || ''}`);
-        } else if (errorData?.error === 'Validation failed') {
-          throw new Error(`Form validation failed. Please check all required fields.`);
-        } else {
-          throw new Error(`Failed to submit form (${response.status}): ${errorData?.error || 'Unknown error'}`);
-        }
-      }
-
-      const result = await response.json();
-      console.log('Server response:', result);
-      
-      if (result.success) {
-        const message = existingProposal 
-          ? 'Proposal updated successfully! Redirecting to proposals page...'
-          : 'Form submitted successfully! Redirecting to proposals page...';
-          
-        setStatusMessage({
-          type: 'success',
-          message: message
-        });
-        
-        // Redirect to proposals page after a short delay
-        // setTimeout(() => {
-        //   window.location.href = '/dashboard/student/proposals';
-        // }, 2000);
-        window.location.href = '/dashboard/student/proposals';
-      } else {
-        // This shouldn't happen since we check !response.ok above, but just in case
-        throw new Error(result.error || 'Unknown error occurred');
-      }
-      
-    } catch (err: any) {
-      console.error('Submission error:', err);
-      setStatusMessage({
-        type: 'error',
-        message: err.message || 'An unknown error occurred while submitting your form.'
-      });
-    } finally {
-      setIsSubmitting(false);
-      // Scroll to top to show the status message
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } catch (e) {
+      console.error('Auth error:', e);
+      throw new Error(e.message || 'Authentication error. Please try logging in again.');
     }
-  };
+    
+    // Upload files if any are selected
+    let uploadedFileUrls: string[] = [];
+    let uploadedPosterUrls: string[] = [];
+    let uploadedPptUrls: string[] = [];
+    
+    if (selectedFiles.length > 0) {
+      setStatusMessage({
+        type: 'info',
+        message: 'Uploading supporting files...'
+      });
+      uploadedFileUrls = await uploadFiles(selectedFiles);
+      console.log('Supporting files uploaded:', uploadedFileUrls);
+    }
+    
+    if (selectedPosterFiles.length > 0) {
+      setStatusMessage({
+        type: 'info',
+        message: 'Uploading poster files...'
+      });
+      uploadedPosterUrls = await uploadFiles(selectedPosterFiles);
+      console.log('Poster files uploaded:', uploadedPosterUrls);
+    }
+    
+    if (selectedPptFiles.length > 0) {
+      setStatusMessage({
+        type: 'info',
+        message: 'Uploading PPT files...'
+      });
+      uploadedPptUrls = await uploadFiles(selectedPptFiles);
+      console.log('PPT files uploaded:', uploadedPptUrls);
+    }
+    
+    // Wait a bit to ensure all uploads are complete
+    await new Promise(resolve => setTimeout(resolve, 500));
+    
+    setStatusMessage({
+      type: 'info',
+      message: 'Submitting proposal...'
+    });
+    
+    // Only include fields that match the API schema
+    const metadata = {
+      category: data.category,
+      locationMode: data.locationMode,
+      state: data.state || '',
+      district: data.district || '',
+      city: data.city || '',
+      placeVisited: data.placeVisited || '',
+      travelTime: data.travelTime || '',
+      executionTime: data.executionTime || '',
+      completionDate: data.completionDate || '',
+      totalParticipants: data.totalParticipants || '',
+    };
+
+    const payload = {
+      title: data.title,
+      description: data.description,
+      content: data.content + '\n\n<!-- METADATA:' + JSON.stringify(metadata) + ' -->',
+      attachment: uploadedFileUrls.join(','),
+      poster_attachment: uploadedPosterUrls.join(','),
+      ppt_attachment: uploadedPptUrls.join(','),
+      link: data.gdriveLink || '',
+      _metadata: metadata
+    };
+
+    console.log('Submitting payload:', payload);
+
+    const apiUrl = '/api/student/proposals';
+    const method = 'POST';
+
+    const response = await fetch(apiUrl, {
+      method: method,
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+      cache: 'no-store',
+    });
+
+    console.log('Response status:', response.status);
+
+    if (!response.ok) {
+      let errorData;
+      try {
+        errorData = await response.json();
+        console.error('Server error (JSON):', errorData);
+      } catch (e) {
+        const errorText = await response.text();
+        console.error('Server error (Text):', errorText);
+      }
+      
+      if (errorData?.error === 'Team not found') {
+        throw new Error(`Your team information could not be found. Please make sure you have joined or created a team.`);
+      } else if (errorData?.error === 'Proposal exists') {
+        throw new Error(`You already have a proposal submitted. ${errorData.message || ''}`);
+      } else if (errorData?.error === 'Validation failed') {
+        throw new Error(`Form validation failed. Please check all required fields.`);
+      } else {
+        throw new Error(`Failed to submit form (${response.status}): ${errorData?.error || 'Unknown error'}`);
+      }
+    }
+
+    const result = await response.json();
+    console.log('Server response:', result);
+    
+    if (result.success) {
+      const message = existingProposal 
+        ? 'Proposal updated successfully! Redirecting...'
+        : 'Proposal submitted successfully! Redirecting...';
+        
+      setStatusMessage({
+        type: 'success',
+        message: message
+      });
+      
+      // Wait to ensure the success message is visible and all network operations are complete
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      // Now redirect
+      window.location.href = '/dashboard/student/proposals';
+    } else {
+      throw new Error(result.error || 'Unknown error occurred');
+    }
+    
+  } catch (err: any) {
+    console.error('Submission error:', err);
+    setStatusMessage({
+      type: 'error',
+      message: err.message || 'An unknown error occurred while submitting your form.'
+    });
+  } finally {
+    setIsSubmitting(false);
+    // Scroll to top to show the status message
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+};
 
   const FilePreview = ({ files, onRemove, type }: { files: File[], onRemove: (index: number) => void, type: string }) => (
     <div className="mt-6">
