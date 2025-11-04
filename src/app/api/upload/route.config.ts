@@ -1,6 +1,6 @@
-export const routeSegmentConfig = {
-  api: {
-    bodyParser: false,
-    sizeLimit: '10mb',
-  },
-};
+// export const routeSegmentConfig = {
+//   api: {
+//     bodyParser: false,
+//     sizeLimit: '50mb',
+//   },
+// };

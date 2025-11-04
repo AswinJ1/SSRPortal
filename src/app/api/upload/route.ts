@@ -3,6 +3,9 @@ import { writeFile, mkdir, access, stat } from 'fs/promises';
 import { join } from 'path';
 import { auth } from '@/lib/auth';
 import { constants } from 'fs';
+// In your app/api/upload/route.ts (or wherever your upload route is)
+export const runtime = 'nodejs';
+export const maxDuration = 300; // 5 minutes
 
 const UPLOAD_DIR = join(process.cwd(), 'public', 'uploads');
 
@@ -71,6 +74,12 @@ export async function POST(req: Request) {
     console.log(`File size: ${file.size} bytes (${(file.size / 1024 / 1024).toFixed(2)} MB)`);
     console.log(`File type: ${file.type}`);
 
+    // Extract extension safely (handles "file.tar.gz" correctly)
+    const lastDotIndex = file.name.lastIndexOf('.');
+    const extension = lastDotIndex !== -1 
+      ? file.name.substring(lastDotIndex).toLowerCase().trim() 
+      : '';
+
     // Validate file type
     const allowedTypes = [
       'application/pdf',
@@ -102,9 +111,12 @@ export async function POST(req: Request) {
     // Generate unique filename with better sanitization
     const timestamp = Date.now();
     const originalName = file.name
-      .replace(/\s+/g, '_')           // Replace spaces
-      .replace(/[^a-zA-Z0-9._-]/g, '') // Remove special chars
-      .substring(0, 100);              // Limit length
+      .trim()                           // "Onsite selction Process 2025_V 2.1 " → "Onsite selction Process 2025_V 2.1"
+      .replace(/\s+/g, '_')            // "Onsite_selction_Process_2025_V_2.1"
+      .replace(/_{2,}/g, '_')          // Remove multiple underscores if any
+      .replace(/[^a-zA-Z0-9._-]/g, '') // Remove any remaining special chars
+      .replace(/^[._-]+|[._-]+$/g, '') // Remove leading/trailing dots/underscores
+      .substring(0, 100);
     const filename = `${timestamp}-${originalName}`;
     const filepath = join(UPLOAD_DIR, filename);
 
