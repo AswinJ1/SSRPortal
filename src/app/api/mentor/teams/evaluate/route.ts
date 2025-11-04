@@ -8,12 +8,17 @@ interface IndividualEvaluation {
   memberId: string;
   memberName: string;
   memberEmail: string;
+  
+  // Mentor's individual score (3 marks - direct input from mentor)
+  individualScore: number; // 3 marks - mentor gives this directly
+  
+  // External evaluator criteria (will be summed to externalEvaluatorMarks)
   learningContribution: number; // 2 marks
   presentationSkill: number; // 2 marks
   contributionToProject: number; // 2 marks
-  individualScore: number; // 3 marks (sum of above divided proportionally)
-  externalEvaluatorMarks?: number; // External evaluator can give marks
-  totalIndividualMarks: number; // individualScore + groupScore
+  externalEvaluatorMarks: number; // Sum of above 3 = 6 marks
+  
+  totalIndividualMarks: number; // groupScore + individualScore + externalEvaluatorMarks
 }
 
 interface TeamEvaluation {
@@ -171,6 +176,9 @@ export async function POST(req: NextRequest) {
       remarks
     } = body;
 
+    console.log('POST evaluation request:', { teamId, posterMarks, videoMarks, reportMarks, pptMarks });
+    console.log('Individual evaluations:', JSON.stringify(individualEvaluations, null, 2));
+
     if (!teamId) {
       return NextResponse.json({ error: 'Team ID is required' }, { status: 400 });
     }
@@ -189,7 +197,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'You are not assigned to this team' }, { status: 403 });
     }
 
-    // Validate marks
+    // Validate group marks
     if (posterMarks < 0 || posterMarks > 2) {
       return NextResponse.json({ error: 'Poster marks must be between 0 and 2' }, { status: 400 });
     }
@@ -209,15 +217,35 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Individual evaluations are required' }, { status: 400 });
     }
 
+    // Validate individual marks
     for (const evalItem of individualEvaluations) {
+      // Validate individualScore (3 marks - mentor's input)
+      if (evalItem.individualScore === undefined || evalItem.individualScore === null) {
+        return NextResponse.json({ 
+          error: `Individual score is required for ${evalItem.memberName}` 
+        }, { status: 400 });
+      }
+      if (evalItem.individualScore < 0 || evalItem.individualScore > 3) {
+        return NextResponse.json({ 
+          error: `Individual score for ${evalItem.memberName} must be between 0 and 3` 
+        }, { status: 400 });
+      }
+      
+      // Validate external evaluator criteria
       if (evalItem.learningContribution < 0 || evalItem.learningContribution > 2) {
-        return NextResponse.json({ error: 'Learning contribution must be between 0 and 2' }, { status: 400 });
+        return NextResponse.json({ 
+          error: `Learning contribution for ${evalItem.memberName} must be between 0 and 2` 
+        }, { status: 400 });
       }
       if (evalItem.presentationSkill < 0 || evalItem.presentationSkill > 2) {
-        return NextResponse.json({ error: 'Presentation skill must be between 0 and 2' }, { status: 400 });
+        return NextResponse.json({ 
+          error: `Presentation skill for ${evalItem.memberName} must be between 0 and 2` 
+        }, { status: 400 });
       }
       if (evalItem.contributionToProject < 0 || evalItem.contributionToProject > 2) {
-        return NextResponse.json({ error: 'Contribution to project must be between 0 and 2' }, { status: 400 });
+        return NextResponse.json({ 
+          error: `Contribution to project for ${evalItem.memberName} must be between 0 and 2` 
+        }, { status: 400 });
       }
     }
 
@@ -248,22 +276,39 @@ export async function POST(req: NextRequest) {
         evaluatedAt: new Date(),
         individualEvaluations: {
           create: individualEvaluations.map((evalData: any) => {
-            const individualScore = evalData.learningContribution + 
-                                   evalData.presentationSkill + 
-                                   evalData.contributionToProject;
+            // Calculate externalEvaluatorMarks (6 marks) = sum of 3 criteria
+            const externalEvaluatorMarks = 
+              evalData.learningContribution + 
+              evalData.presentationSkill + 
+              evalData.contributionToProject;
             
-            const totalIndividualMarks = groupScore + individualScore + (evalData.externalEvaluatorMarks || 0);
+            // Total = groupScore (11) + individualScore (3, from mentor) + externalEvaluatorMarks (6)
+            const totalIndividualMarks = groupScore + evalData.individualScore + externalEvaluatorMarks;
+            
+            console.log(`Member: ${evalData.memberName}`);
+            console.log(`  - Group Score: ${groupScore}`);
+            console.log(`  - Individual Score (mentor): ${evalData.individualScore}`);
+            console.log(`  - External Marks: ${externalEvaluatorMarks}`);
+            console.log(`  - Total: ${totalIndividualMarks}`);
             
             return {
               teamMemberId: evalData.teamMemberId,
               memberId: evalData.memberId,
               memberName: evalData.memberName,
               memberEmail: evalData.memberEmail,
+              
+              // Mentor's individual score (3 marks - direct input)
+              individualScore: evalData.individualScore,
+              
+              // External evaluator criteria (stored separately)
               learningContribution: evalData.learningContribution,
               presentationSkill: evalData.presentationSkill,
               contributionToProject: evalData.contributionToProject,
-              individualScore,
-              externalEvaluatorMarks: evalData.externalEvaluatorMarks || 0,
+              
+              // Calculated external evaluator marks (6 marks)
+              externalEvaluatorMarks,
+              
+              // Total marks (20 max)
               totalIndividualMarks
             };
           })
@@ -277,6 +322,8 @@ export async function POST(req: NextRequest) {
         }
       }
     });
+
+    console.log('Evaluation created successfully:', evaluation.id);
 
     return NextResponse.json({
       message: 'Evaluation created successfully',
@@ -315,6 +362,9 @@ export async function PUT(req: NextRequest) {
       remarks
     } = body;
 
+    console.log('PUT evaluation request:', { teamId, posterMarks, videoMarks, reportMarks, pptMarks });
+    console.log('Individual evaluations:', JSON.stringify(individualEvaluations, null, 2));
+
     if (!teamId) {
       return NextResponse.json({ error: 'Team ID is required' }, { status: 400 });
     }
@@ -344,7 +394,7 @@ export async function PUT(req: NextRequest) {
       );
     }
 
-    // Validate marks (same as POST)
+    // Validate group marks (same as POST)
     if (posterMarks < 0 || posterMarks > 2) {
       return NextResponse.json({ error: 'Poster marks must be between 0 and 2' }, { status: 400 });
     }
@@ -360,6 +410,36 @@ export async function PUT(req: NextRequest) {
 
     const groupScore = posterMarks + videoMarks + reportMarks + pptMarks;
 
+    // Validate individual marks (same as POST)
+    for (const evalItem of individualEvaluations) {
+      if (evalItem.individualScore === undefined || evalItem.individualScore === null) {
+        return NextResponse.json({ 
+          error: `Individual score is required for ${evalItem.memberName}` 
+        }, { status: 400 });
+      }
+      if (evalItem.individualScore < 0 || evalItem.individualScore > 3) {
+        return NextResponse.json({ 
+          error: `Individual score for ${evalItem.memberName} must be between 0 and 3` 
+        }, { status: 400 });
+      }
+      if (evalItem.learningContribution < 0 || evalItem.learningContribution > 2) {
+        return NextResponse.json({ 
+          error: `Learning contribution for ${evalItem.memberName} must be between 0 and 2` 
+        }, { status: 400 });
+      }
+      if (evalItem.presentationSkill < 0 || evalItem.presentationSkill > 2) {
+        return NextResponse.json({ 
+          error: `Presentation skill for ${evalItem.memberName} must be between 0 and 2` 
+        }, { status: 400 });
+      }
+      if (evalItem.contributionToProject < 0 || evalItem.contributionToProject > 2) {
+        return NextResponse.json({ 
+          error: `Contribution to project for ${evalItem.memberName} must be between 0 and 2` 
+        }, { status: 400 });
+      }
+    }
+
+    // Delete existing individual evaluations
     await prisma.individualEvaluation.deleteMany({
       where: { teamEvaluationId: existingEvaluation.id }
     });
@@ -379,22 +459,39 @@ export async function PUT(req: NextRequest) {
         updatedAt: new Date(),
         individualEvaluations: {
           create: individualEvaluations.map((evalData: any) => {
-            const individualScore = evalData.learningContribution + 
-                                   evalData.presentationSkill + 
-                                   evalData.contributionToProject;
+            // Calculate externalEvaluatorMarks (6 marks)
+            const externalEvaluatorMarks = 
+              evalData.learningContribution + 
+              evalData.presentationSkill + 
+              evalData.contributionToProject;
             
-            const totalIndividualMarks = groupScore + individualScore + (evalData.externalEvaluatorMarks || 0);
+            // Total = groupScore (11) + individualScore (3, from mentor) + externalEvaluatorMarks (6)
+            const totalIndividualMarks = groupScore + evalData.individualScore + externalEvaluatorMarks;
+            
+            console.log(`Member: ${evalData.memberName}`);
+            console.log(`  - Group Score: ${groupScore}`);
+            console.log(`  - Individual Score (mentor): ${evalData.individualScore}`);
+            console.log(`  - External Marks: ${externalEvaluatorMarks}`);
+            console.log(`  - Total: ${totalIndividualMarks}`);
             
             return {
               teamMemberId: evalData.teamMemberId,
               memberId: evalData.memberId,
               memberName: evalData.memberName,
               memberEmail: evalData.memberEmail,
+              
+              // Mentor's individual score (3 marks - direct input)
+              individualScore: evalData.individualScore,
+              
+              // External evaluator criteria (stored separately)
               learningContribution: evalData.learningContribution,
               presentationSkill: evalData.presentationSkill,
               contributionToProject: evalData.contributionToProject,
-              individualScore,
-              externalEvaluatorMarks: evalData.externalEvaluatorMarks || 0,
+              
+              // Calculated external evaluator marks (6 marks)
+              externalEvaluatorMarks,
+              
+              // Total marks (20 max)
               totalIndividualMarks
             };
           })
@@ -408,6 +505,8 @@ export async function PUT(req: NextRequest) {
         }
       }
     });
+
+    console.log('Evaluation updated successfully:', updatedEvaluation.id);
 
     return NextResponse.json({
       message: 'Evaluation updated successfully',

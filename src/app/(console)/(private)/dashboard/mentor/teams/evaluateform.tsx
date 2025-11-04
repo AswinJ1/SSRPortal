@@ -17,10 +17,10 @@ interface IndividualMarks {
   memberId: string;
   memberName: string;
   memberEmail: string;
-  learningContribution: number;
-  presentationSkill: number;
-  contributionToProject: number;
-  externalEvaluatorMarks: number;
+  individualScore: number; // 3 marks (mentor's assessment)
+  learningContribution: number; // 2 marks (external evaluator)
+  presentationSkill: number; // 2 marks (external evaluator)
+  contributionToProject: number; // 2 marks (external evaluator)
 }
 
 interface EvaluationFormProps {
@@ -74,11 +74,9 @@ const EvaluateForm: React.FC<EvaluationFormProps> = ({ teamId }) => {
       }
 
       if (result.data.id) {
-        // Existing evaluation found
         setIsUpdate(true);
         loadExistingEvaluation(result.data);
         
-        // If evaluation is submitted, show details view
         if (result.data.status === 'SUBMITTED') {
           setIsSubmitted(true);
           setShowForm(false);
@@ -86,7 +84,6 @@ const EvaluateForm: React.FC<EvaluationFormProps> = ({ teamId }) => {
           setShowForm(true);
         }
       } else {
-        // New evaluation
         loadTeamData(result.data.team);
         setShowForm(true);
       }
@@ -116,10 +113,10 @@ const EvaluateForm: React.FC<EvaluationFormProps> = ({ teamId }) => {
         memberId: ie.memberId,
         memberName: ie.memberName,
         memberEmail: ie.memberEmail,
+        individualScore: ie.individualScore,
         learningContribution: ie.learningContribution,
         presentationSkill: ie.presentationSkill,
-        contributionToProject: ie.contributionToProject,
-        externalEvaluatorMarks: ie.externalEvaluatorMarks || 0
+        contributionToProject: ie.contributionToProject
       });
       
       members.push({
@@ -148,10 +145,10 @@ const EvaluateForm: React.FC<EvaluationFormProps> = ({ teamId }) => {
         memberId: member.id,
         memberName: member.name,
         memberEmail: member.email,
+        individualScore: 0,
         learningContribution: 0,
         presentationSkill: 0,
-        contributionToProject: 0,
-        externalEvaluatorMarks: 0
+        contributionToProject: 0
       });
     });
     setIndividualMarks(marksMap);
@@ -170,12 +167,16 @@ const EvaluateForm: React.FC<EvaluationFormProps> = ({ teamId }) => {
 
   const calculateGroupScore = () => posterMarks + videoMarks + reportMarks + pptMarks;
 
-  const calculateIndividualScore = (marks: IndividualMarks) => {
+  const calculateExternalEvaluatorMarks = (marks: IndividualMarks) => {
     return marks.learningContribution + marks.presentationSkill + marks.contributionToProject;
   };
 
+  const calculateMentorMarks = (marks: IndividualMarks) => {
+    return calculateGroupScore() + marks.individualScore;
+  };
+
   const calculateTotalMarks = (marks: IndividualMarks) => {
-    return calculateGroupScore() + calculateIndividualScore(marks) + marks.externalEvaluatorMarks;
+    return calculateMentorMarks(marks) + calculateExternalEvaluatorMarks(marks);
   };
 
   const validateForm = () => {
@@ -197,6 +198,10 @@ const EvaluateForm: React.FC<EvaluationFormProps> = ({ teamId }) => {
     }
 
     for (const [_, marks] of Array.from(individualMarks)) {
+      if (marks.individualScore < 0 || marks.individualScore > 3) {
+        alert(`Individual score for ${marks.memberName} must be between 0 and 3`);
+        return false;
+      }
       if (marks.learningContribution < 0 || marks.learningContribution > 2) {
         alert(`Learning contribution for ${marks.memberName} must be between 0 and 2`);
         return false;
@@ -254,12 +259,10 @@ const EvaluateForm: React.FC<EvaluationFormProps> = ({ teamId }) => {
       setShowForm(false);
       setShowSuccessMessage(true);
       
-      // Hide success message after 5 seconds
       setTimeout(() => {
         setShowSuccessMessage(false);
       }, 5000);
       
-      // Refresh data
       fetchTeamData();
     } catch (err: any) {
       setError(err.message || 'Failed to save evaluation');
@@ -298,7 +301,7 @@ const EvaluateForm: React.FC<EvaluationFormProps> = ({ teamId }) => {
     );
   }
 
-  // Details View (when evaluation is submitted)
+  // Details View
   if (isSubmitted && !showForm) {
     return (
       <div className="max-w-6xl mx-auto">
@@ -310,7 +313,6 @@ const EvaluateForm: React.FC<EvaluationFormProps> = ({ teamId }) => {
           Back to Team Details
         </button>
 
-        {/* Success Message - Only show if showSuccessMessage is true */}
         {showSuccessMessage && (
           <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6 flex items-center animate-fade-in">
             <CheckCircle className="h-6 w-6 text-green-600 mr-3" />
@@ -329,7 +331,6 @@ const EvaluateForm: React.FC<EvaluationFormProps> = ({ teamId }) => {
           </div>
         )}
 
-        {/* Edit Button */}
         <div className="flex justify-end mb-6">
           <button
             onClick={handleEdit}
@@ -370,43 +371,87 @@ const EvaluateForm: React.FC<EvaluationFormProps> = ({ teamId }) => {
 
         {/* Individual Marks Details */}
         <div className="bg-white rounded-lg shadow p-6 mb-6">
-          <h2 className="text-xl font-semibold mb-4">Individual Marks</h2>
+          <h2 className="text-xl font-semibold mb-4">Individual Evaluations</h2>
           <div className="space-y-6">
             {teamMembers.map((member) => {
               const marks = individualMarks.get(member.teamMemberId);
               if (!marks) return null;
 
-              return (
-                <div key={member.teamMemberId} className="border rounded-lg p-4">
-                  <h3 className="font-semibold text-lg mb-2">{member.name}</h3>
-                  <p className="text-sm text-gray-600 mb-4">{member.email}</p>
+              const mentorMarks = calculateMentorMarks(marks);
+              const externalMarks = calculateExternalEvaluatorMarks(marks);
+              const totalMarks = calculateTotalMarks(marks);
 
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                    <div className="flex justify-between p-3 bg-gray-50 rounded">
-                      <span className="text-sm font-medium">Learning Contribution:</span>
-                      <span className="text-green-600 font-semibold">{marks.learningContribution.toFixed(1)} / 2</span>
+              return (
+                <div key={member.teamMemberId} className="border rounded-lg p-6 bg-gradient-to-br from-white to-gray-50">
+                  <h3 className="font-semibold text-lg mb-2">{member.name}</h3>
+                  <p className="text-sm text-gray-600 mb-6">{member.email}</p>
+
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    {/* Mentor Marks Section */}
+                    <div className="bg-blue-50 rounded-lg p-4 border-2 border-blue-200">
+                      <h4 className="font-semibold text-blue-900 mb-3 flex items-center">
+                        <span className="bg-blue-600 text-white px-2 py-1 rounded text-xs mr-2">MENTOR</span>
+                        Mentor Marks
+                      </h4>
+                      <div className="space-y-2">
+                        <div className="flex justify-between text-sm">
+                          <span className="text-gray-700">Group Marks:</span>
+                          <span className="font-semibold text-blue-700">{calculateGroupScore().toFixed(1)} / 11</span>
+                        </div>
+                        <div className="flex justify-between text-sm">
+                          <span className="text-gray-700">Individual Score:</span>
+                          <span className="font-semibold text-blue-700">{marks.individualScore.toFixed(1)} / 3</span>
+                        </div>
+                        <div className="border-t-2 border-blue-300 pt-2 mt-2">
+                          <div className="flex justify-between items-center">
+                            <span className="font-semibold text-blue-900">Mentor Total:</span>
+                            <span className="text-2xl font-bold text-blue-700">{mentorMarks.toFixed(1)} / 14</span>
+                          </div>
+                        </div>
+                      </div>
                     </div>
-                    <div className="flex justify-between p-3 bg-gray-50 rounded">
-                      <span className="text-sm font-medium">Presentation Skill:</span>
-                      <span className="text-green-600 font-semibold">{marks.presentationSkill.toFixed(1)} / 2</span>
-                    </div>
-                    <div className="flex justify-between p-3 bg-gray-50 rounded">
-                      <span className="text-sm font-medium">Project Contribution:</span>
-                      <span className="text-green-600 font-semibold">{marks.contributionToProject.toFixed(1)} / 2</span>
+
+                    {/* External Evaluator Marks Section */}
+                    <div className="bg-green-50 rounded-lg p-4 border-2 border-green-200">
+                      <h4 className="font-semibold text-green-900 mb-3 flex items-center">
+                        <span className="bg-green-600 text-white px-2 py-1 rounded text-xs mr-2">EXTERNAL</span>
+                        External Evaluator Marks
+                      </h4>
+                      <div className="space-y-2">
+                        <div className="flex justify-between text-sm">
+                          <span className="text-gray-700">Learning Contribution:</span>
+                          <span className="font-semibold text-green-700">{marks.learningContribution.toFixed(1)} / 2</span>
+                        </div>
+                        <div className="flex justify-between text-sm">
+                          <span className="text-gray-700">Presentation Skill:</span>
+                          <span className="font-semibold text-green-700">{marks.presentationSkill.toFixed(1)} / 2</span>
+                        </div>
+                        <div className="flex justify-between text-sm">
+                          <span className="text-gray-700">Contribution to Project:</span>
+                          <span className="font-semibold text-green-700">{marks.contributionToProject.toFixed(1)} / 2</span>
+                        </div>
+                        <div className="border-t-2 border-green-300 pt-2 mt-2">
+                          <div className="flex justify-between items-center">
+                            <span className="font-semibold text-green-900">External Total:</span>
+                            <span className="text-2xl font-bold text-green-700">{externalMarks.toFixed(1)} / 6</span>
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   </div>
 
-                  <div className="p-4 bg-gradient-to-r from-blue-50 to-green-50 rounded-lg">
+                  {/* Total Score */}
+                  <div className="mt-6 p-4 bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg border-2 border-purple-200">
                     <div className="flex justify-between items-center">
-                      <div className="space-y-1">
-                        <p className="text-sm text-gray-600">Individual Score: {calculateIndividualScore(marks).toFixed(1)} / 6</p>
-                        <p className="text-sm text-gray-600">Group Score: {calculateGroupScore().toFixed(1)} / 11</p>
+                      <div>
+                        <p className="text-sm text-gray-600 mb-1">Final Total Score</p>
+                        <p className="text-xs text-gray-500">Mentor ({mentorMarks.toFixed(1)}) + External ({externalMarks.toFixed(1)})</p>
                       </div>
                       <div className="text-right">
-                        <p className="text-xs text-gray-500 mb-1">Total Marks</p>
-                        <p className="text-2xl font-bold text-blue-700">
-                          {calculateTotalMarks(marks).toFixed(1)} / 17
-                        </p>
+                        <span className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+                          {totalMarks.toFixed(1)}
+                        </span>
+                        <span className="text-xl text-gray-500"> / 20</span>
                       </div>
                     </div>
                   </div>
@@ -444,7 +489,7 @@ const EvaluateForm: React.FC<EvaluationFormProps> = ({ teamId }) => {
     );
   }
 
-  // Form View (when evaluation is not submitted or being edited)
+  // Form View
   return (
     <div className="max-w-6xl mx-auto">
       <button
@@ -537,86 +582,144 @@ const EvaluateForm: React.FC<EvaluationFormProps> = ({ teamId }) => {
 
       {/* Individual Marks Section */}
       <div className="bg-white rounded-lg shadow p-6 mb-6">
-        <h2 className="text-xl font-semibold mb-4">Individual Marks (Max: 6 marks per member)</h2>
+        <h2 className="text-xl font-semibold mb-4">Individual Evaluations</h2>
         
         <div className="space-y-6">
           {teamMembers.map((member) => {
             const marks = individualMarks.get(member.teamMemberId);
             if (!marks) return null;
 
+            const mentorMarks = calculateMentorMarks(marks);
+            const externalMarks = calculateExternalEvaluatorMarks(marks);
+            const totalMarks = calculateTotalMarks(marks);
+
             return (
-              <div key={member.teamMemberId} className="border rounded-lg p-4">
-                <h3 className="font-semibold text-lg mb-3">{member.name}</h3>
-                <p className="text-sm text-gray-600 mb-4">{member.email}</p>
+              <div key={member.teamMemberId} className="border-2 rounded-lg p-6 bg-gradient-to-br from-white to-gray-50">
+                <h3 className="font-semibold text-lg mb-2">{member.name}</h3>
+                <p className="text-sm text-gray-600 mb-6">{member.email}</p>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                  <div>
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                  {/* Mentor's Individual Score Input */}
+                  <div className="bg-blue-50 rounded-lg p-4 border-2 border-blue-200">
+                    <h4 className="font-semibold text-blue-900 mb-3 flex items-center">
+                      <span className="bg-blue-600 text-white px-2 py-1 rounded text-xs mr-2">MENTOR</span>
+                      Individual Score
+                    </h4>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Learning Contribution (Max: 2)
+                      Individual Assessment (Max: 3 marks)
                     </label>
                     <input
                       type="number"
                       min="0"
-                      max="2"
+                      max="3"
                       step="0.5"
-                      value={marks.learningContribution}
+                      value={marks.individualScore}
                       onChange={(e) => updateIndividualMarks(
                         member.teamMemberId, 
-                        'learningContribution', 
+                        'individualScore', 
                         parseFloat(e.target.value) || 0
                       )}
-                      className="w-full border rounded px-3 py-2 focus:ring-2 focus:ring-green-500"
+                      className="w-full border-2 border-blue-300 rounded px-3 py-2 focus:ring-2 focus:ring-blue-500 bg-white"
                     />
+                    <div className="mt-4 pt-4 border-t-2 border-blue-300">
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm font-medium text-blue-900">Mentor Total:</span>
+                        <span className="text-xl font-bold text-blue-700">{mentorMarks.toFixed(1)} / 14</span>
+                      </div>
+                      <p className="text-xs text-gray-600 mt-1">
+                        Group ({calculateGroupScore().toFixed(1)}) + Individual ({marks.individualScore.toFixed(1)})
+                      </p>
+                    </div>
                   </div>
 
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Presentation Skill (Max: 2)
-                    </label>
-                    <input
-                      type="number"
-                      min="0"
-                      max="2"
-                      step="0.5"
-                      value={marks.presentationSkill}
-                      onChange={(e) => updateIndividualMarks(
-                        member.teamMemberId, 
-                        'presentationSkill', 
-                        parseFloat(e.target.value) || 0
-                      )}
-                      className="w-full border rounded px-3 py-2 focus:ring-2 focus:ring-green-500"
-                    />
-                  </div>
+                  {/* External Evaluator Criteria Inputs */}
+                  <div className="bg-green-50 rounded-lg p-4 border-2 border-green-200">
+                    <h4 className="font-semibold text-green-900 mb-3 flex items-center">
+                      <span className="bg-green-600 text-white px-2 py-1 rounded text-xs mr-2">EXTERNAL</span>
+                      External Evaluator Criteria
+                    </h4>
+                    <div className="space-y-3">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Learning Contribution (Max: 2)
+                        </label>
+                        <input
+                          type="number"
+                          min="0"
+                          max="2"
+                          step="0.5"
+                          value={marks.learningContribution}
+                          onChange={(e) => updateIndividualMarks(
+                            member.teamMemberId, 
+                            'learningContribution', 
+                            parseFloat(e.target.value) || 0
+                          )}
+                          className="w-full border-2 border-green-300 rounded px-3 py-2 focus:ring-2 focus:ring-green-500 bg-white"
+                        />
+                      </div>
 
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Contribution to Project (Max: 2)
-                    </label>
-                    <input
-                      type="number"
-                      min="0"
-                      max="2"
-                      step="0.5"
-                      value={marks.contributionToProject}
-                      onChange={(e) => updateIndividualMarks(
-                        member.teamMemberId, 
-                        'contributionToProject', 
-                        parseFloat(e.target.value) || 0
-                      )}
-                      className="w-full border rounded px-3 py-2 focus:ring-2 focus:ring-green-500"
-                    />
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Presentation Skill (Max: 2)
+                        </label>
+                        <input
+                          type="number"
+                          min="0"
+                          max="2"
+                          step="0.5"
+                          value={marks.presentationSkill}
+                          onChange={(e) => updateIndividualMarks(
+                            member.teamMemberId, 
+                            'presentationSkill', 
+                            parseFloat(e.target.value) || 0
+                          )}
+                          className="w-full border-2 border-green-300 rounded px-3 py-2 focus:ring-2 focus:ring-green-500 bg-white"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Contribution to Project (Max: 2)
+                        </label>
+                        <input
+                          type="number"
+                          min="0"
+                          max="2"
+                          step="0.5"
+                          value={marks.contributionToProject}
+                          onChange={(e) => updateIndividualMarks(
+                            member.teamMemberId, 
+                            'contributionToProject', 
+                            parseFloat(e.target.value) || 0
+                          )}
+                          className="w-full border-2 border-green-300 rounded px-3 py-2 focus:ring-2 focus:ring-green-500 bg-white"
+                        />
+                      </div>
+                    </div>
+                    <div className="mt-4 pt-4 border-t-2 border-green-300">
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm font-medium text-green-900">External Total:</span>
+                        <span className="text-xl font-bold text-green-700">{externalMarks.toFixed(1)} / 6</span>
+                      </div>
+                    </div>
                   </div>
                 </div>
 
-                <div className="flex justify-between items-center p-3 bg-gray-50 rounded">
-                  <div>
-                    <p className="text-sm text-gray-600">Individual Score: {calculateIndividualScore(marks).toFixed(1)} / 6</p>
-                    <p className="text-sm text-gray-600">Group Score: {calculateGroupScore().toFixed(1)} / 11</p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-lg font-semibold text-green-700">
-                      Total: {calculateTotalMarks(marks).toFixed(1)} / 17
-                    </p>
+                {/* Total Score Display */}
+                <div className="p-4 bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg border-2 border-purple-200">
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <p className="text-sm font-medium text-gray-700 mb-1">Total Score</p>
+                      <p className="text-xs text-gray-500">
+                        Mentor ({mentorMarks.toFixed(1)}) + External ({externalMarks.toFixed(1)})
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <span className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+                        {totalMarks.toFixed(1)}
+                      </span>
+                      <span className="text-xl text-gray-500"> / 20</span>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -670,7 +773,7 @@ const EvaluateForm: React.FC<EvaluationFormProps> = ({ teamId }) => {
         </div>
       </div>
 
-      {/* Action Buttons - Updated */}
+      {/* Action Buttons */}
       <div className="flex justify-end space-x-4 mb-6">
         <button
           onClick={() => isSubmitted ? setShowForm(false) : router.back()}
