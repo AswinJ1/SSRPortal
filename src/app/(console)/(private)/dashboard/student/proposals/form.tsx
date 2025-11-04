@@ -741,9 +741,10 @@ export default function ProjectForm({ existingProposal, onEditMode }: ProjectFor
         });
         
         // Redirect to proposals page after a short delay
-        setTimeout(() => {
-          window.location.href = '/dashboard/student/proposals';
-        }, 2000);
+        // setTimeout(() => {
+        //   window.location.href = '/dashboard/student/proposals';
+        // }, 2000);
+        window.location.href = '/dashboard/student/proposals';
       } else {
         // This shouldn't happen since we check !response.ok above, but just in case
         throw new Error(result.error || 'Unknown error occurred');
