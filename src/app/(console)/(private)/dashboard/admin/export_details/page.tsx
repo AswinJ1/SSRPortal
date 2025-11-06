@@ -45,19 +45,27 @@ const AVAILABLE_COLUMNS = [
   { id: 'proposalRemarks', label: 'Proposal Remarks', category: 'Proposal Details' },
   { id: 'proposalSubmittedAt', label: 'Proposal Submitted Date', category: 'Proposal Details' },
   
+  // Group Marks (11 marks total - same for all team members)
   { id: 'evaluationPosterMarks', label: 'Poster Marks (Out of 2)', category: 'Evaluation - Group Marks' },
   { id: 'evaluationVideoMarks', label: 'Video Marks (Out of 3)', category: 'Evaluation - Group Marks' },
   { id: 'evaluationReportMarks', label: 'Report Marks (Out of 3)', category: 'Evaluation - Group Marks' },
   { id: 'evaluationPptMarks', label: 'PPT Marks (Out of 3)', category: 'Evaluation - Group Marks' },
   { id: 'evaluationGroupScore', label: 'Group Score (Out of 11)', category: 'Evaluation - Group Marks' },
   
-  { id: 'evaluationLearningContribution', label: 'Learning Contribution (Out of 2)', category: 'Evaluation - Individual Marks' },
-  { id: 'evaluationPresentationSkill', label: 'Presentation Skill (Out of 2)', category: 'Evaluation - Individual Marks' },
-  { id: 'evaluationContributionToProject', label: 'Contribution to Project (Out of 2)', category: 'Evaluation - Individual Marks' },
-  { id: 'evaluationIndividualScore', label: 'Individual Score (Out of 6)', category: 'Evaluation - Individual Marks' },
-  { id: 'evaluationExternalMarks', label: 'External Evaluator Marks', category: 'Evaluation - Individual Marks' },
-  { id: 'evaluationTotalIndividualMarks', label: 'Total Individual Marks', category: 'Evaluation - Individual Marks' },
+  // Mentor Marks (14 marks total = Group 11 + Individual 3)
+  { id: 'evaluationIndividualScore', label: 'Individual Score - Mentor Assessment (Out of 3)', category: 'Evaluation - Mentor Marks' },
+  { id: 'evaluationMentorTotal', label: 'Mentor Total Marks (Out of 14)', category: 'Evaluation - Mentor Marks' },
   
+  // External Evaluator Marks (6 marks total)
+  { id: 'evaluationLearningContribution', label: 'What\'s your philosophy/idea about SSR (Out of 2)', category: 'Evaluation - External Evaluator Marks' },
+  { id: 'evaluationPresentationSkill', label: 'Presentation Skill (Out of 2)', category: 'Evaluation - External Evaluator Marks' },
+  { id: 'evaluationContributionToProject', label: 'Learnings (Out of 2)', category: 'Evaluation - External Evaluator Marks' },
+  { id: 'evaluationExternalMarks', label: 'External Evaluator Total (Out of 6)', category: 'Evaluation - External Evaluator Marks' },
+  
+  // Total Marks (20 marks = Mentor 14 + External 6)
+  { id: 'evaluationTotalIndividualMarks', label: 'Final Total Marks (Out of 20)', category: 'Evaluation - Total Marks' },
+  
+  // Evaluation Metadata
   { id: 'evaluationStatus', label: 'Evaluation Status', category: 'Evaluation - Metadata' },
   { id: 'evaluationExternalEvaluatorName', label: 'External Evaluator Name', category: 'Evaluation - Metadata' },
   { id: 'evaluationExternalEvaluatorEmail', label: 'External Evaluator Email', category: 'Evaluation - Metadata' },
@@ -175,6 +183,45 @@ const ExportPage = () => {
           <p className="mt-2 text-gray-600">
             Select the columns you want to export and download team information in CSV format
           </p>
+          
+          {/* Marking Information Card */}
+          <div className="mt-4 bg-gradient-to-r from-blue-50 to-purple-50 border-2 border-blue-200 rounded-lg p-4">
+            <h3 className="font-semibold text-gray-900 mb-2 flex items-center">
+              <span className="bg-blue-600 text-white px-2 py-1 rounded text-xs mr-2">INFO</span>
+              Evaluation Marking Structure
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+              <div className="bg-blue-100 rounded p-3">
+                <p className="font-semibold text-blue-900 mb-1">Group Marks: 11</p>
+                <ul className="text-blue-800 space-y-1 text-xs">
+                  <li>• Poster: 2</li>
+                  <li>• Video: 3</li>
+                  <li>• Report: 3</li>
+                  <li>• PPT: 3</li>
+                </ul>
+              </div>
+              <div className="bg-purple-100 rounded p-3">
+                <p className="font-semibold text-purple-900 mb-1">Mentor Marks: 14</p>
+                <ul className="text-purple-800 space-y-1 text-xs">
+                  <li>• Group Score: 11</li>
+                  <li>• Individual: 3</li>
+                </ul>
+              </div>
+              <div className="bg-green-100 rounded p-3">
+                <p className="font-semibold text-green-900 mb-1">External Marks: 6</p>
+                <ul className="text-green-800 space-y-1 text-xs">
+                  <li>• Philosophy/Idea: 2</li>
+                  <li>• Presentation: 2</li>
+                  <li>• Learnings: 2</li>
+                </ul>
+              </div>
+            </div>
+            <div className="mt-3 pt-3 border-t border-blue-300">
+              <p className="font-bold text-center text-gray-900">
+                Final Total: <span className="text-purple-600">20 marks</span> = Mentor (14) + External (6)
+              </p>
+            </div>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -300,8 +347,7 @@ const ExportPage = () => {
                         </div>
                       ) : (
                         <p className="text-sm text-blue-700">No columns selected</p>
-                      )
-                      }
+                      )}
                     </div>
                   </div>
                 </div>

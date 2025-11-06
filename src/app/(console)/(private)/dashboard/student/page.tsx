@@ -232,7 +232,7 @@ export default function StudentDashboard() {
               </div>
             </Link>
 
-            <Link 
+            {/* <Link 
               href="/dashboard/student/project"
               className="flex items-center justify-between p-4 bg-white rounded-lg shadow hover:shadow-md transition-shadow"
             >
@@ -240,11 +240,11 @@ export default function StudentDashboard() {
                 <h3 className="text-lg font-semibold">Project Details</h3>
                 <p className="text-gray-600">Update project progress</p>
               </div>
-            </Link>
+            </Link> */}
           </div>
 
           {/* Recent Activities */}
-          <div className="bg-white rounded-lg shadow p-6">
+          {/* <div className="bg-white rounded-lg shadow p-6">
             <h2 className="text-xl font-semibold mb-4">Recent Activities</h2>
             <div className="space-y-4">
               {projectStats.recentActivities.map((activity) => (
@@ -262,7 +262,7 @@ export default function StudentDashboard() {
                 </div>
               ))}
             </div>
-          </div>
+          </div> */}
         </>
       ) : (
         <div className="text-center py-12">
