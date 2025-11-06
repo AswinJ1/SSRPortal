@@ -46,12 +46,14 @@ interface IndividualEvaluation {
   id: string;
   memberName: string;
   memberEmail: string;
+  // Mentor's individual assessment (3 marks)
+  individualScore: number;
+  // External evaluator criteria (2+2+2=6 marks)
   learningContribution: number;
   presentationSkill: number;
   contributionToProject: number;
-  individualScore: number;
-  externalEvaluatorMarks: number | null;
-  totalIndividualMarks: number;
+  externalEvaluatorMarks: number; // Sum of above 3 = 6 marks
+  totalIndividualMarks: number; // 20 marks total
   teamMember: {
     id: string;
     name: string;
@@ -63,6 +65,7 @@ interface IndividualEvaluation {
 interface Evaluation {
   id: string;
   status: string;
+  // Group marks (11 marks)
   posterMarks: number;
   videoMarks: number;
   reportMarks: number;
@@ -199,6 +202,10 @@ const ViewDetailsPage = () => {
       month: 'short',
       day: 'numeric'
     });
+  };
+
+  const calculateMentorMarks = (evaluation: Evaluation, individualScore: number) => {
+    return evaluation.groupScore + individualScore;
   };
 
   if (isLoading) {
@@ -584,9 +591,9 @@ const ViewDetailsPage = () => {
                               <Award className="h-5 w-5 mr-2 text-yellow-600" />
                               Evaluation Results
                             </h4>
-                            <div className="bg-white rounded-lg p-4 border border-gray-200">
+                            <div className="bg-white rounded-lg p-6 border border-gray-200">
                               {/* Status and External Evaluator */}
-                              <div className="flex items-center justify-between mb-4">
+                              <div className="flex items-center justify-between mb-4 pb-4 border-b">
                                 {getStatusBadge(team.evaluation.status)}
                                 {team.evaluation.externalEvaluatorName && (
                                   <div className="text-sm text-gray-600">
@@ -598,27 +605,55 @@ const ViewDetailsPage = () => {
                                 )}
                               </div>
 
-                              {/* Group Marks */}
-                              <div className="mb-4">
-                                <h5 className="font-medium text-gray-900 mb-2">Group Marks</h5>
+                              {/* Marking Structure Info */}
+                              <div className="mb-6 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-4 border-2 border-blue-200">
+                                <h5 className="font-semibold text-gray-900 mb-3 flex items-center">
+                                  <span className="bg-blue-600 text-white px-2 py-1 rounded text-xs mr-2">INFO</span>
+                                  Marking Structure
+                                </h5>
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
+                                  <div className="bg-blue-100 rounded p-2">
+                                    <p className="font-semibold text-blue-900">Group: 11 marks</p>
+                                    <p className="text-xs text-blue-800">Same for all members</p>
+                                  </div>
+                                  <div className="bg-purple-100 rounded p-2">
+                                    <p className="font-semibold text-purple-900">Mentor: 14 marks</p>
+                                    <p className="text-xs text-purple-800">Group (11) + Individual (3)</p>
+                                  </div>
+                                  <div className="bg-green-100 rounded p-2">
+                                    <p className="font-semibold text-green-900">External: 6 marks</p>
+                                    <p className="text-xs text-green-800">3 criteria × 2 marks</p>
+                                  </div>
+                                </div>
+                                <div className="mt-2 pt-2 border-t border-blue-300 text-center">
+                                  <p className="font-bold text-gray-900">Total: <span className="text-purple-600">20 marks</span></p>
+                                </div>
+                              </div>
+
+                              {/* Group Marks (11 marks) */}
+                              <div className="mb-6">
+                                <h5 className="font-medium text-gray-900 mb-3 flex items-center">
+                                  <span className="bg-blue-600 text-white px-2 py-1 rounded text-xs mr-2">GROUP</span>
+                                  Group Marks (11 marks - Same for all members)
+                                </h5>
                                 <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-                                  <div className="bg-blue-50 p-3 rounded">
+                                  <div className="bg-blue-50 p-3 rounded border-2 border-blue-200">
                                     <p className="text-xs text-blue-600 font-medium">Poster</p>
                                     <p className="text-lg font-bold text-blue-900">{team.evaluation.posterMarks}/2</p>
                                   </div>
-                                  <div className="bg-green-50 p-3 rounded">
+                                  <div className="bg-green-50 p-3 rounded border-2 border-green-200">
                                     <p className="text-xs text-green-600 font-medium">Video</p>
                                     <p className="text-lg font-bold text-green-900">{team.evaluation.videoMarks}/3</p>
                                   </div>
-                                  <div className="bg-purple-50 p-3 rounded">
+                                  <div className="bg-purple-50 p-3 rounded border-2 border-purple-200">
                                     <p className="text-xs text-purple-600 font-medium">Report</p>
                                     <p className="text-lg font-bold text-purple-900">{team.evaluation.reportMarks}/3</p>
                                   </div>
-                                  <div className="bg-orange-50 p-3 rounded">
+                                  <div className="bg-orange-50 p-3 rounded border-2 border-orange-200">
                                     <p className="text-xs text-orange-600 font-medium">PPT</p>
                                     <p className="text-lg font-bold text-orange-900">{team.evaluation.pptMarks}/3</p>
                                   </div>
-                                  <div className="bg-yellow-50 p-3 rounded">
+                                  <div className="bg-yellow-50 p-3 rounded border-2 border-yellow-200">
                                     <p className="text-xs text-yellow-600 font-medium">Total</p>
                                     <p className="text-lg font-bold text-yellow-900">{team.evaluation.groupScore}/11</p>
                                   </div>
@@ -628,49 +663,86 @@ const ViewDetailsPage = () => {
                               {/* Individual Marks */}
                               {team.evaluation.individualEvaluations && team.evaluation.individualEvaluations.length > 0 && (
                                 <div>
-                                  <h5 className="font-medium text-gray-900 mb-2">Individual Marks</h5>
+                                  <h5 className="font-medium text-gray-900 mb-3">Individual Evaluation Details</h5>
                                   <div className="overflow-x-auto">
-                                    <table className="min-w-full divide-y divide-gray-200">
+                                    <table className="min-w-full divide-y divide-gray-200 border border-gray-200">
                                       <thead className="bg-gray-50">
                                         <tr>
-                                          <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Member</th>
-                                          <th className="px-3 py-2 text-center text-xs font-medium text-gray-500 uppercase">Learning</th>
-                                          <th className="px-3 py-2 text-center text-xs font-medium text-gray-500 uppercase">Presentation</th>
-                                          <th className="px-3 py-2 text-center text-xs font-medium text-gray-500 uppercase">Contribution</th>
-                                          <th className="px-3 py-2 text-center text-xs font-medium text-gray-500 uppercase">Score (6)</th>
-                                          <th className="px-3 py-2 text-center text-xs font-medium text-gray-500 uppercase">External</th>
-                                          <th className="px-3 py-2 text-center text-xs font-medium text-gray-500 uppercase">Total</th>
+                                          <th rowSpan={2} className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase border-r">
+                                            Member
+                                          </th>
+                                          <th colSpan={2} className="px-3 py-2 text-center text-xs font-medium text-blue-700 uppercase bg-blue-50 border-r">
+                                            Mentor (14 marks)
+                                          </th>
+                                          <th colSpan={4} className="px-3 py-2 text-center text-xs font-medium text-green-700 uppercase bg-green-50 border-r">
+                                            External Evaluator (6 marks)
+                                          </th>
+                                          <th rowSpan={2} className="px-3 py-3 text-center text-xs font-medium text-purple-700 uppercase bg-purple-50">
+                                            Total<br/>(20)
+                                          </th>
+                                        </tr>
+                                        <tr>
+                                          <th className="px-3 py-2 text-center text-xs font-medium text-gray-500 uppercase bg-blue-50">
+                                            Individual<br/>(3)
+                                          </th>
+                                          <th className="px-3 py-2 text-center text-xs font-medium text-gray-500 uppercase bg-blue-50 border-r">
+                                            Total<br/>(14)
+                                          </th>
+                                          <th className="px-3 py-2 text-center text-xs font-medium text-gray-500 uppercase bg-green-50">
+                                            Philosophy<br/>(2)
+                                          </th>
+                                          <th className="px-3 py-2 text-center text-xs font-medium text-gray-500 uppercase bg-green-50">
+                                            Presentation<br/>(2)
+                                          </th>
+                                          <th className="px-3 py-2 text-center text-xs font-medium text-gray-500 uppercase bg-green-50">
+                                            Learnings<br/>(2)
+                                          </th>
+                                          <th className="px-3 py-2 text-center text-xs font-medium text-gray-500 uppercase bg-green-50 border-r">
+                                            Total<br/>(6)
+                                          </th>
                                         </tr>
                                       </thead>
                                       <tbody className="bg-white divide-y divide-gray-200">
-                                        {team.evaluation.individualEvaluations.map((evalItem) => (
-                                          <tr key={evalItem.id} className="hover:bg-gray-50">
-                                            <td className="px-3 py-2 text-sm">
-                                              <div>
-                                                <p className="font-medium text-gray-900">{evalItem.memberName}</p>
-                                                <p className="text-xs text-gray-500">{evalItem.teamMember.role}</p>
-                                              </div>
-                                            </td>
-                                            <td className="px-3 py-2 text-center text-sm text-gray-900">
-                                              {evalItem.learningContribution}/2
-                                            </td>
-                                            <td className="px-3 py-2 text-center text-sm text-gray-900">
-                                              {evalItem.presentationSkill}/2
-                                            </td>
-                                            <td className="px-3 py-2 text-center text-sm text-gray-900">
-                                              {evalItem.contributionToProject}/2
-                                            </td>
-                                            <td className="px-3 py-2 text-center text-sm font-medium text-blue-900">
-                                              {evalItem.individualScore}/6
-                                            </td>
-                                            <td className="px-3 py-2 text-center text-sm text-gray-900">
-                                              {evalItem.externalEvaluatorMarks || 0}
-                                            </td>
-                                            <td className="px-3 py-2 text-center text-sm font-bold text-green-900">
-                                              {evalItem.totalIndividualMarks}
-                                            </td>
-                                          </tr>
-                                        ))}
+                                        {team.evaluation.individualEvaluations.map((evalItem) => {
+                                          const mentorTotal = calculateMentorMarks(team.evaluation!, evalItem.individualScore);
+                                          
+                                          return (
+                                            <tr key={evalItem.id} className="hover:bg-gray-50">
+                                              <td className="px-3 py-3 text-sm border-r">
+                                                <div>
+                                                  <p className="font-medium text-gray-900">{evalItem.memberName}</p>
+                                                  <p className="text-xs text-gray-500">{evalItem.teamMember.role}</p>
+                                                </div>
+                                              </td>
+                                              {/* Mentor Marks */}
+                                              <td className="px-3 py-3 text-center text-sm bg-blue-50">
+                                                <span className="font-semibold text-blue-900">{evalItem.individualScore}</span>
+                                              </td>
+                                              <td className="px-3 py-3 text-center text-sm bg-blue-50 border-r">
+                                                <span className="font-bold text-blue-900">{mentorTotal}</span>
+                                                <p className="text-xs text-blue-600">({team.evaluation.groupScore} + {evalItem.individualScore})</p>
+                                              </td>
+                                              {/* External Evaluator Marks */}
+                                              <td className="px-3 py-3 text-center text-sm bg-green-50 text-green-900">
+                                                {evalItem.learningContribution}
+                                              </td>
+                                              <td className="px-3 py-3 text-center text-sm bg-green-50 text-green-900">
+                                                {evalItem.presentationSkill}
+                                              </td>
+                                              <td className="px-3 py-3 text-center text-sm bg-green-50 text-green-900">
+                                                {evalItem.contributionToProject}
+                                              </td>
+                                              <td className="px-3 py-3 text-center text-sm bg-green-50 border-r">
+                                                <span className="font-bold text-green-900">{evalItem.externalEvaluatorMarks}</span>
+                                              </td>
+                                              {/* Total */}
+                                              <td className="px-3 py-3 text-center text-sm bg-purple-50">
+                                                <span className="text-xl font-bold text-purple-900">{evalItem.totalIndividualMarks}</span>
+                                                <p className="text-xs text-purple-600">({mentorTotal} + {evalItem.externalEvaluatorMarks})</p>
+                                              </td>
+                                            </tr>
+                                          );
+                                        })}
                                       </tbody>
                                     </table>
                                   </div>

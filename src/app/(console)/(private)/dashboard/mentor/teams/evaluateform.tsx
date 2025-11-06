@@ -154,12 +154,13 @@ const EvaluateForm: React.FC<EvaluationFormProps> = ({ teamId }) => {
     setIndividualMarks(marksMap);
   };
 
-  const updateIndividualMarks = (teamMemberId: string, field: keyof IndividualMarks, value: number) => {
+  const updateIndividualMarks = (teamMemberId: string, field: keyof IndividualMarks, value: number, max: number) => {
+    const clampedValue = clampValue(value, 0, max);
     setIndividualMarks(prev => {
       const newMap = new Map(prev);
       const marks = newMap.get(teamMemberId);
       if (marks) {
-        newMap.set(teamMemberId, { ...marks, [field]: value });
+        newMap.set(teamMemberId, { ...marks, [field]: clampedValue });
       }
       return newMap;
     });
@@ -275,6 +276,19 @@ const EvaluateForm: React.FC<EvaluationFormProps> = ({ teamId }) => {
   const handleEdit = () => {
     setShowForm(true);
     setShowSuccessMessage(false);
+  };
+
+  const clampValue = (value: number, min: number, max: number): number => {
+    return Math.min(Math.max(value, min), max);
+  };
+
+  const handleNumberInput = (value: string, max: number, setter: (val: number) => void) => {
+    const numValue = parseFloat(value);
+    if (isNaN(numValue)) {
+      setter(0);
+    } else {
+      setter(clampValue(numValue, 0, max));
+    }
   };
 
   if (fetching) {
@@ -419,7 +433,7 @@ const EvaluateForm: React.FC<EvaluationFormProps> = ({ teamId }) => {
                       </h4>
                       <div className="space-y-2">
                         <div className="flex justify-between text-sm">
-                          <span className="text-gray-700">Learning Contribution:</span>
+                          <span className="text-gray-700">What's your philosophy/idea about SSR:</span>
                           <span className="font-semibold text-green-700">{marks.learningContribution.toFixed(1)} / 2</span>
                         </div>
                         <div className="flex justify-between text-sm">
@@ -427,7 +441,7 @@ const EvaluateForm: React.FC<EvaluationFormProps> = ({ teamId }) => {
                           <span className="font-semibold text-green-700">{marks.presentationSkill.toFixed(1)} / 2</span>
                         </div>
                         <div className="flex justify-between text-sm">
-                          <span className="text-gray-700">Contribution to Project:</span>
+                          <span className="text-gray-700">Learnings:</span>
                           <span className="font-semibold text-green-700">{marks.contributionToProject.toFixed(1)} / 2</span>
                         </div>
                         <div className="border-t-2 border-green-300 pt-2 mt-2">
@@ -522,7 +536,8 @@ const EvaluateForm: React.FC<EvaluationFormProps> = ({ teamId }) => {
               max="2"
               step="0.5"
               value={posterMarks}
-              onChange={(e) => setPosterMarks(parseFloat(e.target.value) || 0)}
+              onChange={(e) => handleNumberInput(e.target.value, 2, setPosterMarks)}
+              onBlur={(e) => handleNumberInput(e.target.value, 2, setPosterMarks)}
               className="w-full border rounded px-3 py-2 focus:ring-2 focus:ring-blue-500"
             />
           </div>
@@ -617,7 +632,8 @@ const EvaluateForm: React.FC<EvaluationFormProps> = ({ teamId }) => {
                       onChange={(e) => updateIndividualMarks(
                         member.teamMemberId, 
                         'individualScore', 
-                        parseFloat(e.target.value) || 0
+                        parseFloat(e.target.value) || 0,
+                        3
                       )}
                       className="w-full border-2 border-blue-300 rounded px-3 py-2 focus:ring-2 focus:ring-blue-500 bg-white"
                     />
@@ -641,7 +657,8 @@ const EvaluateForm: React.FC<EvaluationFormProps> = ({ teamId }) => {
                     <div className="space-y-3">
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Learning Contribution (Max: 2)
+                    What's your philosophy/idea about SSR:
+bution (Max: 2)
                         </label>
                         <input
                           type="number"
@@ -652,7 +669,8 @@ const EvaluateForm: React.FC<EvaluationFormProps> = ({ teamId }) => {
                           onChange={(e) => updateIndividualMarks(
                             member.teamMemberId, 
                             'learningContribution', 
-                            parseFloat(e.target.value) || 0
+                            parseFloat(e.target.value) || 0,
+                            2
                           )}
                           className="w-full border-2 border-green-300 rounded px-3 py-2 focus:ring-2 focus:ring-green-500 bg-white"
                         />
@@ -671,7 +689,8 @@ const EvaluateForm: React.FC<EvaluationFormProps> = ({ teamId }) => {
                           onChange={(e) => updateIndividualMarks(
                             member.teamMemberId, 
                             'presentationSkill', 
-                            parseFloat(e.target.value) || 0
+                            parseFloat(e.target.value) || 0,
+                            2
                           )}
                           className="w-full border-2 border-green-300 rounded px-3 py-2 focus:ring-2 focus:ring-green-500 bg-white"
                         />
@@ -679,7 +698,7 @@ const EvaluateForm: React.FC<EvaluationFormProps> = ({ teamId }) => {
 
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Contribution to Project (Max: 2)
+                          Learnings: (Max: 2)
                         </label>
                         <input
                           type="number"
@@ -690,7 +709,8 @@ const EvaluateForm: React.FC<EvaluationFormProps> = ({ teamId }) => {
                           onChange={(e) => updateIndividualMarks(
                             member.teamMemberId, 
                             'contributionToProject', 
-                            parseFloat(e.target.value) || 0
+                            parseFloat(e.target.value) || 0,
+                            2
                           )}
                           className="w-full border-2 border-green-300 rounded px-3 py-2 focus:ring-2 focus:ring-green-500 bg-white"
                         />

@@ -18,7 +18,7 @@ const studentLinks = [
   { href: '/dashboard/student', label: 'Dashboard', icon: Home },
   { href: '/dashboard/student/team', label: 'Team', icon: Users },
   { href: '/dashboard/student/proposals', label: 'Proposals', icon: FileText },
-  { href: '/dashboard/student/project', label: 'Project', icon: BookOpen },
+  // { href: '/dashboard/student/project', label: 'Project', icon: BookOpen },
 ];
 
 const mentorLinks = [
