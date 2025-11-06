@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react';
 import { FileText, Edit3, Clock, CheckCircle, XCircle, MapPin, Timer } from 'lucide-react';
 import Link from 'next/link';
+import { formatDDMMYYYY,formatTimeInHours } from '@/utils/dateFormatter';
 
 interface Proposal {
   id: number;
@@ -47,47 +48,7 @@ interface Proposal {
   };
 }
 
-// Helper function to format DD/MM/YYYY date
-function formatDDMMYYYY(dateString: string): string {
-  if (!dateString) return '';
-  
-  // If already in DD/MM/YYYY format, return as is
-  if (dateString.includes('/')) {
-    return dateString;
-  }
-  
-  // Otherwise, assume ISO format and convert
-  try {
-    const date = new Date(dateString);
-    const day = String(date.getDate()).padStart(2, '0');
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const year = date.getFullYear();
-    return `${day}/${month}/${year}`;
-  } catch {
-    return dateString;
-  }
-}
 
-// Helper function to display time in hours
-function formatTimeInHours(timeString: string): string {
-  if (!timeString) return '';
-  
-  const hours = parseFloat(timeString);
-  if (isNaN(hours)) return timeString;
-  
-  if (hours === Math.floor(hours)) {
-    return `${hours} hour${hours !== 1 ? 's' : ''}`;
-  }
-  
-  const wholeHours = Math.floor(hours);
-  const minutes = Math.round((hours - wholeHours) * 60);
-  
-  if (wholeHours === 0) {
-    return `${minutes} minute${minutes !== 1 ? 's' : ''}`;
-  }
-  
-  return `${wholeHours} hour${wholeHours !== 1 ? 's' : ''} ${minutes} minute${minutes !== 1 ? 's' : ''}`;
-}
 
 export default function StudentProposalsPage() {
   const [proposals, setProposals] = useState<Proposal[]>([]);
@@ -350,7 +311,7 @@ export default function StudentProposalsPage() {
                     {proposal.metadata.completionDate && (
                       <div className="bg-gray-50 p-2 rounded">
                         <span className="text-gray-500 block">Completion Date:</span>
-                        <p className="font-medium">{proposal.metadata.completionDate}</p>
+                   <p className="font-medium">{formatDDMMYYYY(proposal.metadata.completionDate)}</p>
                       </div>
                     )}
                   </div>

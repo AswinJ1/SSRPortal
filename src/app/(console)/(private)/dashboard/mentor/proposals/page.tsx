@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { CheckCircle, XCircle, Clock, FileText, MapPin, Calendar, Timer } from 'lucide-react';
+import { formatDDMMYYYY,formatTimeInHours } from '@/utils/dateFormatter';
 
 interface Proposal {
   id: number;
@@ -157,7 +158,7 @@ export default function MentorProposalsPage() {
                         <span className="ml-1 capitalize">{proposal.state === 'DRAFT' ? 'Pending' : proposal.state.toLowerCase()}</span>
                       </span>
                       <span className="text-sm text-gray-500">
-                        Submitted: {new Date(proposal.created_at).toLocaleDateString()}
+                        Submitted: {formatDDMMYYYY(proposal.created_at)}
                       </span>
                     </div>
                   </div>
@@ -258,13 +259,13 @@ export default function MentorProposalsPage() {
                       </h4>
                       <div className="text-sm space-y-1">
                         {proposal.metadata?.travelTime && (
-                          <p className="break-words"><span className="text-gray-500">Travel Time:</span> {proposal.metadata.travelTime}</p>
+                          <p className="break-words"><span className="text-gray-500">Travel Time:</span> {formatTimeInHours(proposal.metadata.travelTime)}</p>
                         )}
                         {proposal.metadata?.executionTime && (
-                          <p className="break-words"><span className="text-gray-500">Execution Time:</span> {proposal.metadata.executionTime}</p>
+                          <p className="break-words"><span className="text-gray-500">Execution Time:</span> {formatTimeInHours(proposal.metadata.executionTime)}</p>
                         )}
                         {proposal.metadata?.completionDate && (
-                          <p className="break-words"><span className="text-gray-500">Completion Date:</span> {new Date(proposal.metadata.completionDate).toLocaleDateString()}</p>
+                          <p className="break-words"><span className="text-gray-500">Completion Date:</span> {formatDDMMYYYY(proposal.metadata.completionDate)}</p>
                         )}
                       </div>
                     </div>
@@ -337,7 +338,7 @@ export default function MentorProposalsPage() {
                                     }
                                     return (
                                       <svg className="h-6 w-6 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
-                                        <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clipRule="evenodd" />
+                                        <path fillRule="evenodd" d="M4 4a2 2 0 002-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clipRule="evenodd" />
                                       </svg>
                                     );
                                   };
@@ -427,7 +428,7 @@ export default function MentorProposalsPage() {
                                     }
                                     return (
                                       <svg className="h-6 w-6 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
-                                        <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clipRule="evenodd" />
+                                        <path fillRule="evenodd" d="M4 4a2 2 0 002-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clipRule="evenodd" />
                                       </svg>
                                     );
                                   };
@@ -517,7 +518,7 @@ export default function MentorProposalsPage() {
                                     }
                                     return (
                                       <svg className="h-6 w-6 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
-                                        <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clipRule="evenodd" />
+                                        <path fillRule="evenodd" d="M4 4a2 2 0 002-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clipRule="evenodd" />
                                       </svg>
                                     );
                                   };
@@ -570,7 +571,7 @@ export default function MentorProposalsPage() {
                   <p className="text-gray-600">{proposal.remarks}</p>
                   {proposal.remark_updated_at && (
                     <p className="text-xs text-gray-500 mt-2">
-                      Updated: {new Date(proposal.remark_updated_at).toLocaleString()}
+                      Updated: {formatDDMMYYYY(proposal.remark_updated_at)} {new Date(proposal.remark_updated_at).toLocaleTimeString()}
                     </p>
                   )}
                 </div>

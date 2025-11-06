@@ -382,9 +382,9 @@ export default function TeamDetailPage() {
                         <p className="text-sm text-gray-600">
                           By: {proposal.author.firstName} {proposal.author.lastName} ({proposal.author.rollno})
                         </p>
-                        <p className="text-xs text-gray-500 mt-1">
+                        {/* <p className="text-xs text-gray-500 mt-1">
                           Created: {new Date(proposal.created_at).toLocaleString()}
-                        </p>
+                        </p> */}
                       </div>
                       <button
                         onClick={() => handleViewProposal(proposal.id)}
