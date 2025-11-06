@@ -355,6 +355,12 @@ export default function ProjectForm({ existingProposal, onEditMode }: ProjectFor
     resolver: zodResolver(projectSchema),
   });
 
+  // Register travelTime and executionTime fields
+  useEffect(() => {
+    register('travelTime');
+    register('executionTime');
+  }, [register]);
+
   const states = Object.keys(indianStatesWithDistricts);
   const districts = selectedState ? indianStatesWithDistricts[selectedState] || [] : [];
 
@@ -1043,95 +1049,101 @@ export default function ProjectForm({ existingProposal, onEditMode }: ProjectFor
           </h2>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-         <div>
-  <label className="block text-sm font-semibold text-gray-700 mb-2">
-    Travel Time <span className="text-red-500">*</span>
-  </label>
-  <div className="flex gap-4">
-    <div className="flex-1">
-      <input
-        type="number"
-        min="0"
-        max="23"
-        placeholder="Hours"
-        id="travelHours"
-        onChange={(e) => {
-          const hours = e.target.value;
-          const minutesInput = document.querySelector<HTMLInputElement>('#travelMin');
-          const minutes = minutesInput?.value || '0';
-          setValue('travelTime', `${hours} hr ${minutes}`);
-        }}
-        className="block w-full px-4 py-3 bg-white border border-gray-300 rounded-lg"
-      />
-      <p className="text-xs text-gray-500 mt-1">Hours</p>
-    </div>
-    <div className="flex-1">
-      <input
-        id="travelMin"
-        type="number"
-        min="0"
-        max="59"
-        placeholder="Minutes"
-        onChange={(e) => {
-          const hoursInput = document.querySelector<HTMLInputElement>('#travelHours');
-          const hours = hoursInput?.value || '0';
-          const minutes = e.target.value;
-          setValue('travelTime', `${hours} hr ${minutes}`);
-        }}
-        className="block w-full px-4 py-3 bg-white border border-gray-300 rounded-lg"
-      />
-      <p className="text-xs text-gray-500 mt-1">Minutes</p>
-    </div>
-  </div>
-  {errors.travelTime && <p className="text-red-600 text-sm mt-1">{errors.travelTime.message}</p>}
-</div>
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                Travel Time <span className="text-red-500">*</span>
+              </label>
+              {/* Hidden input to register the field */}
+              <input type="hidden" {...register('travelTime')} />
+              <div className="flex gap-4">
+                <div className="flex-1">
+                  <input
+                    type="number"
+                    min="0"
+                    max="23"
+                    placeholder="Hours"
+                    id="travelHours"
+                    defaultValue={watch('travelTime') ? parseInt(watch('travelTime').split(' ')[0]) : undefined}
+                    onChange={(e) => {
+                      const hours = e.target.value;
+                      const minutesInput = document.querySelector<HTMLInputElement>('#travelMin');
+                      const minutes = minutesInput?.value || '0';
+                      setValue('travelTime', `${hours} hr ${minutes}`, { shouldValidate: true });
+                    }}
+                    className="block w-full px-4 py-3 bg-white border border-gray-300 rounded-lg"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">Hours</p>
+                </div>
+                <div className="flex-1">
+                  <input
+                    id="travelMin"
+                    type="number"
+                    min="0"
+                    max="59"
+                    placeholder="Minutes"
+                    defaultValue={watch('travelTime') ? parseInt(watch('travelTime').split(' ')[2]) : undefined}
+                    onChange={(e) => {
+                      const hoursInput = document.querySelector<HTMLInputElement>('#travelHours');
+                      const hours = hoursInput?.value || '0';
+                      const minutes = e.target.value;
+                      setValue('travelTime', `${hours} hr ${minutes}`, { shouldValidate: true });
+                    }}
+                    className="block w-full px-4 py-3 bg-white border border-gray-300 rounded-lg"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">Minutes</p>
+                </div>
+              </div>
+              {errors.travelTime && <p className="text-red-600 text-sm mt-1">{errors.travelTime.message}</p>}
+            </div>
 
-<div>
-  <label className="block text-sm font-semibold text-gray-700 mb-2">
-    Execution Time <span className="text-red-500">*</span>
-  </label>
-  <div className="flex gap-4">
-    <div className="flex-1">
-      <input
-        type="number"
-        min="0"
-        max="23"
-        placeholder="Hours"
-        id="execHours"
-        onChange={(e) => {
-          const hours = e.target.value;
-          const minutesInput = document.querySelector<HTMLInputElement>('#execMin');
-          const minutes = minutesInput?.value || '0';
-          setValue('executionTime', `${hours} hr ${minutes}`);
-        }}
-        className="block w-full px-4 py-3 bg-white border border-gray-300 rounded-lg"
-      />
-      <p className="text-xs text-gray-500 mt-1">Hours</p>
-    </div>
-    <div className="flex-1">
-      <input
-        id="execMin"
-        type="number"
-        min="0"
-        max="59"
-        placeholder="Minutes"
-        onChange={(e) => {
-          const hoursInput = document.querySelector<HTMLInputElement>('#execHours');
-          const hours = hoursInput?.value || '0';
-          const minutes = e.target.value;
-          setValue('executionTime', `${hours} hr ${minutes}`);
-        }}
-        className="block w-full px-4 py-3 bg-white border border-gray-300 rounded-lg"
-      />
-      <p className="text-xs text-gray-500 mt-1">Minutes</p>
-    </div>
-  </div>
-  {errors.executionTime && <p className="text-red-600 text-sm mt-1">{errors.executionTime.message}</p>}
-</div>
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                Execution Time <span className="text-red-500">*</span>
+              </label>
+              {/* Hidden input to register the field */}
+              <input type="hidden" {...register('executionTime')} />
+              <div className="flex gap-4">
+                <div className="flex-1">
+                  <input
+                    type="number"
+                    min="0"
+                    max="23"
+                    placeholder="Hours"
+                    id="execHours"
+                    defaultValue={watch('executionTime') ? parseInt(watch('executionTime').split(' ')[0]) : undefined}
+                    onChange={(e) => {
+                      const hours = e.target.value;
+                      const minutesInput = document.querySelector<HTMLInputElement>('#execMin');
+                      const minutes = minutesInput?.value || '0';
+                      setValue('executionTime', `${hours} hr ${minutes}`, { shouldValidate: true });
+                    }}
+                    className="block w-full px-4 py-3 bg-white border border-gray-300 rounded-lg"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">Hours</p>
+                </div>
+                <div className="flex-1">
+                  <input
+                    id="execMin"
+                    type="number"
+                    min="0"
+                    max="59"
+                    placeholder="Minutes"
+                    defaultValue={watch('executionTime') ? parseInt(watch('executionTime').split(' ')[2]) : undefined}
+                    onChange={(e) => {
+                      const hoursInput = document.querySelector<HTMLInputElement>('#execHours');
+                      const hours = hoursInput?.value || '0';
+                      const minutes = e.target.value;
+                      setValue('executionTime', `${hours} hr ${minutes}`, { shouldValidate: true });
+                    }}
+                    className="block w-full px-4 py-3 bg-white border border-gray-300 rounded-lg"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">Minutes</p>
+                </div>
+              </div>
+              {errors.executionTime && <p className="text-red-600 text-sm mt-1">{errors.executionTime.message}</p>}
+            </div>
 
-
-
-           <div>
+            <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">
                 Date of Completion <span className="text-red-500">*</span>
               </label>
