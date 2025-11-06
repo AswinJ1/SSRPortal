@@ -124,6 +124,26 @@ export default function MentorProposalsPage() {
     }
   };
 
+  const formatDate = (dateString: string) => {
+    if (!dateString) return '';
+    
+    // If already in DD/MM/YYYY format, return as is
+    if (dateString.includes('/')) {
+      return dateString;
+    }
+    
+    // Otherwise, assume ISO format and convert
+    try {
+      const date = new Date(dateString);
+      const day = String(date.getDate()).padStart(2, '0');
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const year = date.getFullYear();
+      return `${day}/${month}/${year}`;
+    } catch {
+      return dateString;
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex justify-center items-center h-64">
@@ -264,7 +284,7 @@ export default function MentorProposalsPage() {
                           <p className="break-words"><span className="text-gray-500">Execution Time:</span> {proposal.metadata.executionTime}</p>
                         )}
                         {proposal.metadata?.completionDate && (
-                          <p className="break-words"><span className="text-gray-500">Completion Date:</span> {new Date(proposal.metadata.completionDate).toLocaleDateString()}</p>
+                          <p className="break-words"><span className="text-gray-500">Completion Date:</span> {formatDate(proposal.metadata.completionDate)}</p>
                         )}
                       </div>
                     </div>
@@ -337,7 +357,7 @@ export default function MentorProposalsPage() {
                                     }
                                     return (
                                       <svg className="h-6 w-6 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
-                                        <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clipRule="evenodd" />
+                                        <path fillRule="evenodd" d="M4 4a2 2 0 002-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clipRule="evenodd" />
                                       </svg>
                                     );
                                   };
@@ -427,7 +447,7 @@ export default function MentorProposalsPage() {
                                     }
                                     return (
                                       <svg className="h-6 w-6 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
-                                        <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clipRule="evenodd" />
+                                        <path fillRule="evenodd" d="M4 4a2 2 0 002-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clipRule="evenodd" />
                                       </svg>
                                     );
                                   };
@@ -517,7 +537,7 @@ export default function MentorProposalsPage() {
                                     }
                                     return (
                                       <svg className="h-6 w-6 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
-                                        <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clipRule="evenodd" />
+                                        <path fillRule="evenodd" d="M4 4a2 2 0 002-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clipRule="evenodd" />
                                       </svg>
                                     );
                                   };

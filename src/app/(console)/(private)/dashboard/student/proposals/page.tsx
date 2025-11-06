@@ -350,7 +350,7 @@ export default function StudentProposalsPage() {
                     {proposal.metadata.completionDate && (
                       <div className="bg-gray-50 p-2 rounded">
                         <span className="text-gray-500 block">Completion Date:</span>
-                        <p className="font-medium">{proposal.metadata.completionDate}</p>
+                        <p className="font-medium">{formatDDMMYYYY(proposal.metadata.completionDate)}</p>
                       </div>
                     )}
                   </div>
