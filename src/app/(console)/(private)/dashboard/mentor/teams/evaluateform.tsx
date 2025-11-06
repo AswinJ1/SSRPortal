@@ -204,7 +204,7 @@ const EvaluateForm: React.FC<EvaluationFormProps> = ({ teamId }) => {
         return false;
       }
       if (marks.learningContribution < 0 || marks.learningContribution > 2) {
-        alert(`Learning contribution for ${marks.memberName} must be between 0 and 2`);
+        alert(`Philosophy/idea about SSR for ${marks.memberName} must be between 0 and 2`);
         return false;
       }
       if (marks.presentationSkill < 0 || marks.presentationSkill > 2) {
@@ -212,7 +212,7 @@ const EvaluateForm: React.FC<EvaluationFormProps> = ({ teamId }) => {
         return false;
       }
       if (marks.contributionToProject < 0 || marks.contributionToProject > 2) {
-        alert(`Contribution for ${marks.memberName} must be between 0 and 2`);
+        alert(`Learnings for ${marks.memberName} must be between 0 and 2`);
         return false;
       }
     }
@@ -552,7 +552,8 @@ const EvaluateForm: React.FC<EvaluationFormProps> = ({ teamId }) => {
               max="3"
               step="0.5"
               value={videoMarks}
-              onChange={(e) => setVideoMarks(parseFloat(e.target.value) || 0)}
+              onChange={(e) => handleNumberInput(e.target.value, 3, setVideoMarks)}
+              onBlur={(e) => handleNumberInput(e.target.value, 3, setVideoMarks)}
               className="w-full border rounded px-3 py-2 focus:ring-2 focus:ring-blue-500"
             />
           </div>
@@ -567,7 +568,8 @@ const EvaluateForm: React.FC<EvaluationFormProps> = ({ teamId }) => {
               max="3"
               step="0.5"
               value={reportMarks}
-              onChange={(e) => setReportMarks(parseFloat(e.target.value) || 0)}
+              onChange={(e) => handleNumberInput(e.target.value, 3, setReportMarks)}
+              onBlur={(e) => handleNumberInput(e.target.value, 3, setReportMarks)}
               className="w-full border rounded px-3 py-2 focus:ring-2 focus:ring-blue-500"
             />
           </div>
@@ -582,7 +584,8 @@ const EvaluateForm: React.FC<EvaluationFormProps> = ({ teamId }) => {
               max="3"
               step="0.5"
               value={pptMarks}
-              onChange={(e) => setPptMarks(parseFloat(e.target.value) || 0)}
+              onChange={(e) => handleNumberInput(e.target.value, 3, setPptMarks)}
+              onBlur={(e) => handleNumberInput(e.target.value, 3, setPptMarks)}
               className="w-full border rounded px-3 py-2 focus:ring-2 focus:ring-blue-500"
             />
           </div>
@@ -657,8 +660,7 @@ const EvaluateForm: React.FC<EvaluationFormProps> = ({ teamId }) => {
                     <div className="space-y-3">
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
-                    What's your philosophy/idea about SSR:
-bution (Max: 2)
+                    What's your philosophy/idea about SSR: (Max: 2)
                         </label>
                         <input
                           type="number"
