@@ -3,7 +3,7 @@
 import { FileText, Clock, CheckCircle, XCircle, ArrowLeft, User, Users } from 'lucide-react';
 import React, { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation';
-
+import { formatDDMMYYYY,formatTimeInHours } from '@/utils/dateFormatter';
 interface ProposalAuthor {
   firstName: string;
   lastName: string;
@@ -144,9 +144,10 @@ export default function ProposalDetailPage() {
       case 'REJECTED':
         return 'text-red-600 bg-red-100';
       case 'DRAFT':
-        return 'text-gray-600 bg-gray-100';
-      default:
+      case 'PENDING':
         return 'text-yellow-600 bg-yellow-100';
+      default:
+        return 'text-gray-600 bg-gray-100';
     }
   };
 
@@ -199,7 +200,9 @@ export default function ProposalDetailPage() {
           </div>
           <div className={`flex items-center space-x-2 px-4 py-2 rounded-full ${getStatusColor(proposal.state)}`}>
             {getStatusIcon(proposal.state)}
-            <span className="font-medium">{proposal.state}</span>
+            <span className="font-medium">
+              {proposal.state === 'DRAFT' ? 'PENDING' : proposal.state}
+            </span>
           </div>
         </div>
       </div>
@@ -261,19 +264,19 @@ export default function ProposalDetailPage() {
                   {proposal.metadata.travelTime && (
                     <div className="bg-gray-50 p-3 rounded">
                       <span className="text-sm text-gray-500 block">Travel Time</span>
-                      <p className="font-medium">{proposal.metadata.travelTime} hours</p>
+                      <p className="font-medium">{formatTimeInHours(proposal.metadata.travelTime)} </p>
                     </div>
                   )}
                   {proposal.metadata.executionTime && (
                     <div className="bg-gray-50 p-3 rounded">
                       <span className="text-sm text-gray-500 block">Execution Time</span>
-                      <p className="font-medium">{proposal.metadata.executionTime} hours</p>
+                      <p className="font-medium">{formatTimeInHours(proposal.metadata.executionTime)} </p>
                     </div>
                   )}
                   {proposal.metadata.completionDate && (
                     <div className="bg-gray-50 p-3 rounded">
                       <span className="text-sm text-gray-500 block">Completion Date</span>
-                      <p className="font-medium">{new Date(proposal.metadata.completionDate).toLocaleDateString()}</p>
+                      <p className="font-medium">{formatDDMMYYYY(proposal.metadata.completionDate)}</p>
                     </div>
                   )}
                 </div>
@@ -346,7 +349,7 @@ export default function ProposalDetailPage() {
                 <p className="text-gray-700 whitespace-pre-wrap">{proposal.remarks}</p>
                 {proposal.remark_updated_at && (
                   <p className="text-xs text-gray-500 mt-2">
-                    Last updated: {new Date(proposal.remark_updated_at).toLocaleString()}
+                    Last updated: {formatDDMMYYYY(proposal.remark_updated_at)}
                   </p>
                 )}
               </div>
@@ -387,7 +390,7 @@ export default function ProposalDetailPage() {
           </div>
 
           {/* Actions */}
-          {proposal.state === 'PENDING' && (
+          {(proposal.state === 'PENDING' || proposal.state === 'DRAFT') && (
             <div className="bg-white rounded-lg shadow p-6">
               <h2 className="text-lg font-semibold mb-4">Actions</h2>
               <div className="space-y-3">
@@ -415,11 +418,11 @@ export default function ProposalDetailPage() {
             <div className="space-y-3 text-sm">
               <div>
                 <p className="text-gray-500">Created</p>
-                <p className="font-medium">{new Date(proposal.created_at).toLocaleString()}</p>
+                <p className="font-medium">{formatDDMMYYYY(proposal.created_at)}</p>
               </div>
               <div>
                 <p className="text-gray-500">Last Updated</p>
-                <p className="font-medium">{new Date(proposal.updated_at).toLocaleString()}</p>
+                <p className="font-medium">{formatDDMMYYYY(proposal.updated_at)}</p>
               </div>
             </div>
           </div>

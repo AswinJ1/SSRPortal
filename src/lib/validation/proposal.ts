@@ -10,10 +10,17 @@ export const proposalMetadataSchema = z.object({
   placeVisited: z.string().min(1, 'Place visited is required'),
   travelTime: z.string()
     .min(1, 'Travel time is required')
-    .regex(/^[0-9]+(\.[0-9]+)?$/, 'Travel time must be a valid number in hours (e.g., "2", "2.5", "1.75")'),
+    .regex(
+      /^([0-1]?[0-9]|2[0-3]) hr ([0-5]?[0-9])$/,
+      'Invalid format'
+    ),
   executionTime: z.string()
     .min(1, 'Execution time is required')
-    .regex(/^[0-9]+(\.[0-9]+)?$/, 'Execution time must be a valid number in hours (e.g., "1", "1.5", "0.5")'),
+    .regex(
+      /^([0-1]?[0-9]|2[0-3]) hr ([0-5]?[0-9])$/,
+      'Invalid format'
+    ),
+
   completionDate: z.string().min(1, 'Completion date is required'),
   totalParticipants: z.string()
     .min(1, 'Total participants is required')

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { CheckCircle, XCircle, Clock, FileText, MapPin, Calendar, Timer } from 'lucide-react';
+import { formatDDMMYYYY,formatTimeInHours } from '@/utils/dateFormatter';
 
 interface Proposal {
   id: number;
@@ -124,26 +125,6 @@ export default function MentorProposalsPage() {
     }
   };
 
-  const formatDate = (dateString: string) => {
-    if (!dateString) return '';
-    
-    // If already in DD/MM/YYYY format, return as is
-    if (dateString.includes('/')) {
-      return dateString;
-    }
-    
-    // Otherwise, assume ISO format and convert
-    try {
-      const date = new Date(dateString);
-      const day = String(date.getDate()).padStart(2, '0');
-      const month = String(date.getMonth() + 1).padStart(2, '0');
-      const year = date.getFullYear();
-      return `${day}/${month}/${year}`;
-    } catch {
-      return dateString;
-    }
-  };
-
   if (loading) {
     return (
       <div className="flex justify-center items-center h-64">
@@ -177,7 +158,7 @@ export default function MentorProposalsPage() {
                         <span className="ml-1 capitalize">{proposal.state === 'DRAFT' ? 'Pending' : proposal.state.toLowerCase()}</span>
                       </span>
                       <span className="text-sm text-gray-500">
-                        Submitted: {new Date(proposal.created_at).toLocaleDateString()}
+                        Submitted: {formatDDMMYYYY(proposal.created_at)}
                       </span>
                     </div>
                   </div>
@@ -278,13 +259,13 @@ export default function MentorProposalsPage() {
                       </h4>
                       <div className="text-sm space-y-1">
                         {proposal.metadata?.travelTime && (
-                          <p className="break-words"><span className="text-gray-500">Travel Time:</span> {proposal.metadata.travelTime}</p>
+                          <p className="break-words"><span className="text-gray-500">Travel Time:</span> {formatTimeInHours(proposal.metadata.travelTime)}</p>
                         )}
                         {proposal.metadata?.executionTime && (
-                          <p className="break-words"><span className="text-gray-500">Execution Time:</span> {proposal.metadata.executionTime}</p>
+                          <p className="break-words"><span className="text-gray-500">Execution Time:</span> {formatTimeInHours(proposal.metadata.executionTime)}</p>
                         )}
                         {proposal.metadata?.completionDate && (
-                          <p className="break-words"><span className="text-gray-500">Completion Date:</span> {formatDate(proposal.metadata.completionDate)}</p>
+                          <p className="break-words"><span className="text-gray-500">Completion Date:</span> {formatDDMMYYYY(proposal.metadata.completionDate)}</p>
                         )}
                       </div>
                     </div>
@@ -590,7 +571,7 @@ export default function MentorProposalsPage() {
                   <p className="text-gray-600">{proposal.remarks}</p>
                   {proposal.remark_updated_at && (
                     <p className="text-xs text-gray-500 mt-2">
-                      Updated: {new Date(proposal.remark_updated_at).toLocaleString()}
+                      Updated: {formatDDMMYYYY(proposal.remark_updated_at)} {new Date(proposal.remark_updated_at).toLocaleTimeString()}
                     </p>
                   )}
                 </div>

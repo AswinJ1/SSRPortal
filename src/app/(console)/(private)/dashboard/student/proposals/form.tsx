@@ -18,10 +18,18 @@ const projectSchema = proposalSchema.extend({
   placeVisited: z.string().min(1, 'Place visited is required'),
   travelTime: z.string()
     .min(1, 'Travel time is required')
-    .regex(/^[0-9]+(\.[0-9]+)?$/, 'Travel time must be a valid number in hours (e.g., "2", "2.5", "1.75")'),
+    .regex(
+      /^([0-1]?[0-9]|2[0-3]) hr ([0-5]?[0-9])$/,
+      'Invalid format'
+    ),
   executionTime: z.string()
     .min(1, 'Execution time is required')
-    .regex(/^[0-9]+(\.[0-9]+)?$/, 'Execution time must be a valid number in hours (e.g., "1", "1.5", "0.5")'),
+    .regex(
+      /^([0-1]?[0-9]|2[0-3]) hr ([0-5]?[0-9])$/,
+      'Invalid format'
+    ),
+
+
   completionDate: z.string().min(1, 'Completion date is required'),
   gdriveLink: z.string().url('Please enter a valid Google Drive URL').min(1, 'Google Drive link is required'),
   totalParticipants: z.string()
@@ -1035,39 +1043,93 @@ export default function ProjectForm({ existingProposal, onEditMode }: ProjectFor
           </h2>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Travel Time (in hours) <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="number"
-                step="0.1"
-                min="0"
-                placeholder="e.g. 2.5 (2 hours 30 minutes)"
-                {...register('travelTime', {
-                  setValueAs: (v) => v === '' ? '' : String(v)
-                })}
-                className="block w-full px-4 py-3 bg-white border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-              />
-              {errors.travelTime && <p className="text-red-600 text-sm mt-1 font-medium">{errors.travelTime.message}</p>}
-            </div>
+         <div>
+  <label className="block text-sm font-semibold text-gray-700 mb-2">
+    Travel Time <span className="text-red-500">*</span>
+  </label>
+  <div className="flex gap-4">
+    <div className="flex-1">
+      <input
+        type="number"
+        min="0"
+        max="23"
+        placeholder="Hours"
+        id="travelHours"
+        onChange={(e) => {
+          const hours = e.target.value;
+          const minutesInput = document.querySelector<HTMLInputElement>('#travelMin');
+          const minutes = minutesInput?.value || '0';
+          setValue('travelTime', `${hours} hr ${minutes}`);
+        }}
+        className="block w-full px-4 py-3 bg-white border border-gray-300 rounded-lg"
+      />
+      <p className="text-xs text-gray-500 mt-1">Hours</p>
+    </div>
+    <div className="flex-1">
+      <input
+        id="travelMin"
+        type="number"
+        min="0"
+        max="59"
+        placeholder="Minutes"
+        onChange={(e) => {
+          const hoursInput = document.querySelector<HTMLInputElement>('#travelHours');
+          const hours = hoursInput?.value || '0';
+          const minutes = e.target.value;
+          setValue('travelTime', `${hours} hr ${minutes}`);
+        }}
+        className="block w-full px-4 py-3 bg-white border border-gray-300 rounded-lg"
+      />
+      <p className="text-xs text-gray-500 mt-1">Minutes</p>
+    </div>
+  </div>
+  {errors.travelTime && <p className="text-red-600 text-sm mt-1">{errors.travelTime.message}</p>}
+</div>
 
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Execution Time (in hours) <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="number"
-                step="0.1"
-                min="0"
-                placeholder="e.g. 1.5 (1 hour 30 minutes)"
-                {...register('executionTime', {
-                  setValueAs: (v) => v === '' ? '' : String(v)
-                })}
-                className="block w-full px-4 py-3 bg-white border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-              />
-              {errors.executionTime && <p className="text-red-600 text-sm mt-1 font-medium">{errors.executionTime.message}</p>}
-            </div>
+<div>
+  <label className="block text-sm font-semibold text-gray-700 mb-2">
+    Execution Time <span className="text-red-500">*</span>
+  </label>
+  <div className="flex gap-4">
+    <div className="flex-1">
+      <input
+        type="number"
+        min="0"
+        max="23"
+        placeholder="Hours"
+        id="execHours"
+        onChange={(e) => {
+          const hours = e.target.value;
+          const minutesInput = document.querySelector<HTMLInputElement>('#execMin');
+          const minutes = minutesInput?.value || '0';
+          setValue('executionTime', `${hours} hr ${minutes}`);
+        }}
+        className="block w-full px-4 py-3 bg-white border border-gray-300 rounded-lg"
+      />
+      <p className="text-xs text-gray-500 mt-1">Hours</p>
+    </div>
+    <div className="flex-1">
+      <input
+        id="execMin"
+        type="number"
+        min="0"
+        max="59"
+        placeholder="Minutes"
+        onChange={(e) => {
+          const hoursInput = document.querySelector<HTMLInputElement>('#execHours');
+          const hours = hoursInput?.value || '0';
+          const minutes = e.target.value;
+          setValue('executionTime', `${hours} hr ${minutes}`);
+        }}
+        className="block w-full px-4 py-3 bg-white border border-gray-300 rounded-lg"
+      />
+      <p className="text-xs text-gray-500 mt-1">Minutes</p>
+    </div>
+  </div>
+  {errors.executionTime && <p className="text-red-600 text-sm mt-1">{errors.executionTime.message}</p>}
+</div>
+
+
 
            <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">
