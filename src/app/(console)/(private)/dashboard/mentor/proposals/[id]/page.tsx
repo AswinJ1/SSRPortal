@@ -51,6 +51,7 @@ interface Proposal {
     locationMode?: string;
     state?: string;
     district?: string;
+    linkedin?: string;
     city?: string;
     placeVisited?: string;
     travelTime?: string;
@@ -261,6 +262,12 @@ export default function ProposalDetailPage() {
                       <p className="font-medium">{proposal.metadata.totalParticipants}</p>
                     </div>
                   )}
+                   {/* {proposal.metadata.linkedin && (
+                    <div className="bg-gray-50 p-3 rounded">
+                      <span className="text-sm text-gray-500 block">LinkedIn</span>
+                      <p className="font-medium">{proposal.metadata.linkedin}</p>
+                    </div>
+                  )} */}
                   {proposal.metadata.travelTime && (
                     <div className="bg-gray-50 p-3 rounded">
                       <span className="text-sm text-gray-500 block">Travel Time</span>
@@ -298,7 +305,7 @@ export default function ProposalDetailPage() {
             </div>
 
             {/* Attachments */}
-            {(proposal.link || proposal.attachment || proposal.ppt_attachment || proposal.poster_attachment) && (
+            {(proposal.link || proposal.attachment || proposal.ppt_attachment || proposal.poster_attachment || proposal.metadata.linkedin) && (
               <div className="mt-6 pt-6 border-t">
                 <h3 className="font-semibold text-gray-700 mb-3">Attachments & Links</h3>
                 <div className="space-y-2">
@@ -311,6 +318,15 @@ export default function ProposalDetailPage() {
                         Project Link
                       </a>
                     </div>
+                  )}
+                  {proposal.metadata.linkedin && (
+                    <div className="flex items-center space-x-2">
+                      <FileText className="h-5 w-5 text-green-500" />
+                      <a href={proposal.metadata.linkedin} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                        View LinkedIn Post
+                      </a>
+                    </div>
+
                   )}
                   {proposal.attachment && (
                     <div className="flex items-center space-x-2">
@@ -339,6 +355,7 @@ export default function ProposalDetailPage() {
                 </div>
               </div>
             )}
+      
           </div>
 
           {/* Current Remarks */}

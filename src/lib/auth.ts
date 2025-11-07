@@ -35,7 +35,7 @@ export const authOptions: AuthOptions = {
           label: 'Password',
           type: 'password',
         },
-        role: { // Add role to credentials
+        role: {
           label: 'Role',
           type: 'text',
         }
@@ -99,11 +99,19 @@ export const authOptions: AuthOptions = {
 
   callbacks: {
     async jwt({ token, user }) {
-      if(user) token.user = user as User;
+      // Only add user to token on sign-in (when user object is present)
+      if (user) {
+        token.user = user as User;
+      }
+      
       return token;
     },
 
     async session({ session, token }) {
+      if (!token.user) {
+        return session;
+      }
+      
       const user = token.user as User;
       return {
         ...session,
@@ -120,31 +128,81 @@ export const authOptions: AuthOptions = {
     },
 
     async redirect({ url, baseUrl }) {
-      const token = await (authOptions.callbacks as any).jwt({ token: {} });
-      const role = token?.user?.role?.toLowerCase();
-
-      // Define dashboard routes based on role
-      const dashboardRoutes = {
+      console.log('Redirect callback - URL:', url, 'BaseURL:', baseUrl);
+      
+      // Map role to login page
+      const loginRoutes: Record<string, string> = {
+        student: '/auth/student/signin',
+        mentor: '/auth/signin',
+        admin: '/auth/admin/signin'
+      };
+      
+      // Map role to dashboard
+      const dashboardRoutes: Record<string, string> = {
         student: '/dashboard/student',
         mentor: '/dashboard/mentor',
         admin: '/dashboard/admin'
       };
 
-      // If coming from signin
-      if (url.startsWith('/auth/signin') || url === baseUrl) {
-        return `${baseUrl}${dashboardRoutes[role] || '/auth/signin'}`;
-      }
-
-      // Handle other URLs
-      if (url.startsWith('/')) {
-        return `${baseUrl}${url}`;
-      }
-      if (new URL(url).origin === baseUrl) {
+      // IMPORTANT: If the URL is already a login page, don't redirect again
+      if (url.includes('/auth/student/signin') || 
+          url.includes('/auth/signin') || 
+          url.includes('/auth/admin/signin')) {
+        console.log('Already a login page, returning as-is:', url);
+        // If it's a relative URL, make it absolute
+        if (url.startsWith('/')) {
+          return `${baseUrl}${url}`;
+        }
         return url;
       }
 
-      // Default to role-specific dashboard
-      return `${baseUrl}${dashboardRoutes[role] || '/auth/signin'}`;
+      // Handle signout
+      if (url.includes('/signout') || url.includes('api/auth/signout')) {
+        console.log('Signout detected');
+        // Don't override - let the manual redirect handle it
+        // Just return to student signin as fallback
+        return `${baseUrl}/auth/student/signin`;
+      }
+
+      // Extract role from URL path if present (for login pages)
+      let roleFromUrl: string | null = null;
+      if (url.includes('/dashboard/admin') || url.includes('/auth/admin')) {
+        roleFromUrl = 'admin';
+      } else if (url.includes('/dashboard/mentor') || url.includes('/auth/mentor')) {
+        roleFromUrl = 'mentor';
+      } else if (url.includes('/dashboard/student') || url.includes('/auth/student')) {
+        roleFromUrl = 'student';
+      }
+
+      const role = roleFromUrl || 'student';
+      console.log('Detected role:', role);
+
+      // If coming from signin or callback
+      if (url.includes('/api/auth/callback') || url === baseUrl || url === `${baseUrl}/`) {
+        const destination = `${baseUrl}${dashboardRoutes[role]}`;
+        console.log('Redirecting after login to:', destination);
+        return destination;
+      }
+
+      // Handle relative URLs
+      if (url.startsWith('/') && !url.startsWith('//')) {
+        return `${baseUrl}${url}`;
+      }
+
+      // Handle absolute URLs within same origin
+      try {
+        const urlObj = new URL(url);
+        if (urlObj.origin === baseUrl) {
+          return url;
+        }
+      } catch (e) {
+        console.error('Invalid URL:', url);
+      }
+
+      // Default fallback
+      const fallback = `${baseUrl}${dashboardRoutes[role]}`;
+      console.log('Fallback redirect to:', fallback);
+      return fallback;
     }
   },
 };

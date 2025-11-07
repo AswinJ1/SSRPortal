@@ -111,10 +111,10 @@ export default function MentorDashboard() {
             Review Proposals
           </button>
           <button
-            onClick={() => router.push('/dashboard/mentor/progress')}
+            onClick={() => router.push('/dashboard/mentor/teams')}
             className="p-4 bg-white rounded-lg shadow hover:shadow-md transition-shadow"
           >
-            Track Progress
+            My Teams
           </button>
           <button
             onClick={() => router.push('/dashboard/mentor/approval')}

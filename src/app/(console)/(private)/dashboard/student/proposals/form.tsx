@@ -32,6 +32,7 @@ const projectSchema = proposalSchema.extend({
 
   completionDate: z.string().min(1, 'Completion date is required'),
   gdriveLink: z.string().url('Please enter a valid Google Drive URL').min(1, 'Google Drive link is required'),
+  linkedin: z.string().url('Please enter a valid LinkedIn URL').min(1, 'LinkedIn link is required'),
   totalParticipants: z.string()
     .min(1, 'Total participants is required')
     .regex(/^[0-9]+$/, 'Total participants must be a valid number'),
@@ -260,6 +261,7 @@ interface ExistingProposal {
     locationMode?: string;
     state?: string;
     district?: string;
+    linkedin?: string;
     city?: string;
     placeVisited?: string;
     travelTime?: string;
@@ -554,6 +556,9 @@ export default function ProjectForm({ existingProposal, onEditMode }: ProjectFor
         if (metadata.city && metadata.city.trim()) {
           setValue('city', metadata.city);
         }
+        if (metadata.linkedin && metadata.linkedin.trim()) {
+          setValue('linkedin', metadata.linkedin);
+        }
         if (metadata.placeVisited && metadata.placeVisited.trim()) {
           setValue('placeVisited', metadata.placeVisited);
         }
@@ -667,7 +672,7 @@ export default function ProjectForm({ existingProposal, onEditMode }: ProjectFor
       }
       
       if (!authData.data.hasTeam) {
-        throw new Error('You must be part of a team to submit a proposal. Please join or create a team first.');
+        throw new Error('You must be part of a team to submit project. Please join or create a team first.');
       }
     } catch (e: any) {
       console.error('Auth error:', e);
@@ -723,7 +728,7 @@ export default function ProjectForm({ existingProposal, onEditMode }: ProjectFor
     
     setStatusMessage({
       type: 'info',
-      message: 'Submitting proposal...'
+      message: 'Submitting Project...'
     });
     
     // Only include fields that match the API schema
@@ -732,6 +737,7 @@ export default function ProjectForm({ existingProposal, onEditMode }: ProjectFor
       locationMode: data.locationMode,
       state: data.state || '',
       district: data.district || '',
+      linkedin: data.linkedin || '',
       city: data.city || '',
       placeVisited: data.placeVisited || '',
       travelTime: data.travelTime || '',
@@ -786,8 +792,8 @@ export default function ProjectForm({ existingProposal, onEditMode }: ProjectFor
       
       if (errorData?.error === 'Team not found') {
         throw new Error(`Your team information could not be found. Please make sure you have joined or created a team.`);
-      } else if (errorData?.error === 'Proposal exists') {
-        throw new Error(`You already have a proposal submitted. ${errorData.message || ''}`);
+      } else if (errorData?.error === 'Project exists') {
+        throw new Error(`You already have a project submitted. ${errorData.message || ''}`);
       } else if (errorData?.error === 'Validation failed') {
         throw new Error(`Form validation failed. Please check all required fields.`);
       } else {
@@ -800,8 +806,8 @@ export default function ProjectForm({ existingProposal, onEditMode }: ProjectFor
     
     if (result.success) {
       const message = currentProposal 
-        ? 'Proposal updated successfully! Redirecting...'
-        : 'Proposal submitted successfully! Redirecting...';
+        ? 'Project updated successfully! Redirecting...'
+        : 'Project submitted successfully! Redirecting...';
         
       setStatusMessage({
         type: 'success',
@@ -888,7 +894,7 @@ export default function ProjectForm({ existingProposal, onEditMode }: ProjectFor
       {isLoading && (
         <div className="flex items-center justify-center py-12 bg-gray-50 rounded-lg border">
           <Loader2 className="h-6 w-6 animate-spin mr-3 text-blue-600" />
-          <span className="text-gray-700 font-medium">Loading existing proposal data...</span>
+          <span className="text-gray-700 font-medium">Loading existing project data...</span>
         </div>
       )}
       
@@ -1201,13 +1207,13 @@ export default function ProjectForm({ existingProposal, onEditMode }: ProjectFor
                 <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clipRule="evenodd"/>
               </svg>
             </div>
-            Project Content
+            Project Details
           </h2>
           
           <div className="space-y-6">
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Description <span className="text-red-500">*</span>
+                Project Summary <span className="text-red-500">*</span>
                 <span className="text-xs text-gray-500 font-normal ml-1">(minimum 100 characters)</span>
               </label>
               <textarea
@@ -1219,7 +1225,7 @@ export default function ProjectForm({ existingProposal, onEditMode }: ProjectFor
               {errors.description && <p className="text-red-600 text-sm mt-1 font-medium">{errors.description.message}</p>}
             </div>
 
-            <div>
+            {/* <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">
                 Content <span className="text-red-500">*</span>
                 <span className="text-xs text-gray-500 font-normal ml-1">(minimum 100 characters)</span>
@@ -1231,7 +1237,7 @@ export default function ProjectForm({ existingProposal, onEditMode }: ProjectFor
                 className="block w-full px-4 py-3 bg-white border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors resize-none"
               />
               {errors.content && <p className="text-red-600 text-sm mt-1 font-medium">{errors.content.message}</p>}
-            </div>
+            </div> */}
           </div>
         </div>
 
@@ -1243,7 +1249,7 @@ export default function ProjectForm({ existingProposal, onEditMode }: ProjectFor
                 <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM6.293 6.707a1 1 0 010-1.414l3-3a1 1 0 011.414 0l3 3a1 1 0 01-1.414 1.414L11 5.414V13a1 1 0 11-2 0V5.414L7.707 6.707a1 1 0 01-1.414 0z" clipRule="evenodd"/>
               </svg>
             </div>
-            Supporting Files <span className="text-red-500">*</span>
+            Project Report <span className="text-red-500">*</span>
           </h2>
           
           <div className="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center hover:border-gray-400 transition-colors">
@@ -1390,24 +1396,43 @@ export default function ProjectForm({ existingProposal, onEditMode }: ProjectFor
                 <path fillRule="evenodd" d="M4 4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2H4zm8 8a2 2 0 11-4 0 2 2 0 014 0zm-2-6a4 4 0 100 8 4 4 0 000-8z" clipRule="evenodd" />
               </svg>
             </div>
-            Google Drive Link with Photos and Videos
+            Links & Social Media
           </h2>
           
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Google Drive Link <span className="text-red-500">*</span>
-              <span className="text-xs text-gray-500 font-normal ml-1">- Share link to folder with photos/videos</span>
-            </label>
-            <input
-              type="url"
-              {...register('gdriveLink')}
-              placeholder="https://drive.google.com/drive/folders/..."
-              className="block w-full px-4 py-3 bg-white border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-            />
-            {errors.gdriveLink && <p className="text-red-600 text-sm mt-1 font-medium">{errors.gdriveLink.message}</p>}
-            <p className="text-xs text-gray-500 mt-2">
-              💡 <strong>Tip:</strong> Share your Google Drive folder with photos and videos from your project execution. Make sure the link is publicly accessible.
-            </p>
+          <div className="space-y-6">
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                Google Drive Link <span className="text-red-500">*</span>
+                <span className="text-xs text-gray-500 font-normal ml-1">- Share link to folder with photos/videos</span>
+              </label>
+              <input
+                type="url"
+                {...register('gdriveLink')}
+                placeholder="https://drive.google.com/drive/folders/..."
+                className="block w-full px-4 py-3 bg-white border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+              />
+              {errors.gdriveLink && <p className="text-red-600 text-sm mt-1 font-medium">{errors.gdriveLink.message}</p>}
+              <p className="text-xs text-gray-500 mt-2">
+                💡 <strong>Tip:</strong> Share your Google Drive folder with photos and videos from your project execution. Make sure the link is publicly accessible.
+              </p>
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                LinkedIn Post Link <span className="text-red-500">*</span>
+                <span className="text-xs text-gray-500 font-normal ml-1">- Link to your project's LinkedIn post</span>
+              </label>
+              <input
+                type="url"
+                {...register('linkedin')}
+                placeholder="https://www.linkedin.com/posts/..."
+                className="block w-full px-4 py-3 bg-white border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+              />
+              {errors.linkedin && <p className="text-red-600 text-sm mt-1 font-medium">{errors.linkedin.message}</p>}
+              <p className="text-xs text-gray-500 mt-2">
+                💡 <strong>Tip:</strong> Share your project post on LinkedIn and paste the link here.
+              </p>
+            </div>
           </div>
         </div>
 

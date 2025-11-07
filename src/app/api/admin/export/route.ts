@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { Parser } from '@json2csv/plainjs';
+import { Linkedin } from 'lucide-react';
 
 // Define column mapping for data extraction
 const COLUMN_MAPPING: Record<string, { label: string; getValue: (data: any) => string }> = {
@@ -178,6 +179,16 @@ Object.assign(COLUMN_MAPPING, {
       ? data.team.proposals.map((p: any) => {
           const metadata = extractProposalMetadata(p);
           return metadata.travelTime || 'No travel time';
+        }).join('\n')
+      : 'No proposals'
+  },
+
+  Linkedin: { 
+    label: 'LinkedIn Post', 
+    getValue: (data) => data.team.proposals.length > 0
+      ? data.team.proposals.map((p: any) => {
+          const metadata = extractProposalMetadata(p);
+          return metadata.linkedin || 'No Linkedin Post';
         }).join('\n')
       : 'No proposals'
   },

@@ -23,6 +23,7 @@ interface Proposal {
     locationMode?: string;
     state?: string;
     district?: string;
+    linkedin?: string;
     city?: string;
     placeVisited?: string;
     travelTime?: string;
@@ -118,16 +119,16 @@ export default function StudentProposalsPage() {
   if (proposals.length === 0) {
     return (
       <div className="p-6">
-        <h1 className="text-2xl font-bold mb-4">My Proposals</h1>
+        <h1 className="text-2xl font-bold mb-4">My Projects</h1>
         <div className="text-center py-12">
           <FileText className="mx-auto h-16 w-16 text-gray-400 mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">No proposals yet</h3>
-          <p className="text-gray-600 mb-6">You haven't submitted any proposals yet. Create your first proposal to get started.</p>
+          <h3 className="text-lg font-medium text-gray-900 mb-2">No projects yet</h3>
+          <p className="text-gray-600 mb-6">You haven't submitted any projects yet. Create your first project to get started.</p>
           <Link 
             href="/dashboard/student/proposals/form"
             className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
           >
-            Create New Proposal
+            Fill up your Project
           </Link>
         </div>
       </div>
@@ -157,14 +158,14 @@ export default function StudentProposalsPage() {
   return (
     <div className="p-6">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">My Proposal</h1>
+        <h1 className="text-2xl font-bold">My Project</h1>
         {proposal.state === 'REJECTED' && (
           <Link 
             href="/dashboard/student/proposals/form"
             className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
           >
             <Edit3 className="h-4 w-4 mr-2" />
-            Edit Proposal
+            Edit Project
           </Link>
         )}
       </div>
@@ -287,6 +288,27 @@ export default function StudentProposalsPage() {
                         <p className="font-medium break-words">{proposal.metadata.placeVisited}</p>
                       </div>
                     )}
+                    {proposal.metadata.linkedin && (
+                      <div className="bg-gray-50 p-2 rounded">
+                        <span className="text-gray-500 block">LinkedIn Post:</span>
+                        {/* <p className="font-medium break-words">{proposal.metadata.linkedin}</p> */}
+                         <a href={proposal.metadata.linkedin} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline break-all">
+                        View LinkedIn Post
+                      </a>
+                      </div>
+                    )}
+
+
+                    {/* {proposal.link && (
+                    <div className="flex items-center space-x-2">
+                      <svg className="h-5 w-5 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M12.586 4.586a2 2 0 112.828 2.828l-3 3a2 2 0 01-2.828 0 1 1 0 00-1.414 1.414 4 4 0 005.656 0l3-3a4 4 0 00-5.656-5.656l-1.5 1.5a1 1 0 101.414 1.414l1.5-1.5zm-5 5a2 2 0 012.828 0 1 1 0 101.414-1.414 4 4 0 00-5.656 0l-3 3a4 4 0 105.656 5.656l1.5-1.5a1 1 0 10-1.414-1.414l-1.5 1.5a2 2 0 11-2.828-2.828l3-3z" clipRule="evenodd" />
+                      </svg>
+                      <a href={proposal.link} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline break-all">
+                        Google Drive Link
+                      </a>
+                    </div>
+                  )} */}
                   </div>
                 </div>
 
@@ -320,14 +342,14 @@ export default function StudentProposalsPage() {
             )}
 
             <div>
-              <h4 className="font-semibold text-gray-700 mb-2">Description</h4>
+              <h4 className="font-semibold text-gray-700 mb-2">Project Summary</h4>
               <p className="text-gray-600 whitespace-pre-wrap break-words">{proposal.description}</p>
             </div>
-            
+{/*             
             <div>
               <h4 className="font-semibold text-gray-700 mb-2">Content</h4>
               <p className="text-gray-600 whitespace-pre-wrap break-words">{proposal.content.replace(/\n\n<!-- METADATA:.*? -->/, '')}</p>
-            </div>
+            </div> */}
 
             {/* Links and attachments */}
             {(proposal.link || proposal.attachment || proposal.ppt_attachment || proposal.poster_attachment) && (
@@ -350,7 +372,7 @@ export default function StudentProposalsPage() {
                         <svg className="h-5 w-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
                           <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd" />
                         </svg>
-                        <span className="font-medium text-gray-700">Supporting Files:</span>
+                        <span className="font-medium text-gray-700">Project Report:</span>
                       </div>
                       <div className="grid grid-cols-1 gap-2">
                         {proposal.attachment.split(',').filter(url => url.trim()).map((fileUrl, index) => {
@@ -501,7 +523,7 @@ export default function StudentProposalsPage() {
             {proposal.state === 'REJECTED' && (
               <div className="mt-4">
                 <p className="text-sm text-red-700 font-medium">
-                  Your proposal has been rejected. Please review the feedback above and edit your proposal accordingly.
+                  Your project has been rejected. Please review the feedback above and edit your project accordingly.
                 </p>
               </div>
             )}

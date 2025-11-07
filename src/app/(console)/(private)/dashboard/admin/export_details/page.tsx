@@ -33,6 +33,7 @@ const AVAILABLE_COLUMNS = [
   { id: 'proposalCategory', label: 'Proposal Category', category: 'Proposal Details' },
   { id: 'proposalLocationState', label: 'Proposal State/Location', category: 'Proposal Details' },
   { id: 'proposalDistrict', label: 'Proposal District', category: 'Proposal Details' },
+  { id: 'proposalLinkedinPost', label: 'LinkedIn Post', category: 'Proposal Details' },
   { id: 'proposalCity', label: 'Proposal City', category: 'Proposal Details' },
   { id: 'proposalPlaceVisited', label: 'Place Visited', category: 'Proposal Details' },
   { id: 'proposalTravelTime', label: 'Travel Time', category: 'Proposal Details' },
