@@ -262,19 +262,23 @@ export default async function TeamsPage() {
               </div>
 
               {/* Project Details */}
-              {team.project ? (
+              {team.proposals && team.proposals.length > 0 ? (
                 <div>
                   <h3 className="font-medium mb-3">Project Details</h3>
                   <div className="p-4 bg-gray-50 rounded-lg">
-                    <p className="font-medium">{team.project.name}</p>
-                    {team.project.theme && (
+                    <p className="font-medium">{team.proposals[0].title}</p>
+                    {team.proposals[0].state && (
                       <p className="text-sm text-gray-600 mt-1">
-                        Theme: {team.project.theme.name}
+                        Status: 
+                        <span className={`px-2 py-1 rounded ${getStatusStyle(team.proposals[0].state)}`}>
+                          {team.proposals[0].state}
+                        </span>
                       </p>
                     )}
-                    {team.project.description && (
+                   
+                    {team.proposals[0].description && (
                       <p className="text-sm text-gray-700 mt-2">
-                        {team.project.description}
+                        {team.proposals[0].description}
                       </p>
                     )}
                   </div>

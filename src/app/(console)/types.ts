@@ -18,10 +18,11 @@ export interface IUser {
 
 // eslint-disable-next-line import/no-unused-modules
 export enum PROPOSAL_STATUS {
+  DRAFT = 'DRAFT',
   SUBMITTED = 'SUBMITTED',
-  ACCEPTED = 'ACCEPTED',
+  APPROVED = 'APPROVED',
   REJECTED = 'REJECTED',
-  FROZEN = 'FROZEN',
+
 }
 
 // eslint-disable-next-line import/no-unused-modules
@@ -29,9 +30,24 @@ export interface IProposal {
   id: number;
   title: string;
   description: string;
-  proposalURL: string;
-  status: PROPOSAL_STATUS;
-  timestamp: string;
+  content: string;
+  attachment?: string | null;
+  ppt_attachment?: string | null;
+  poster_attachment?: string | null;
+  link?: string | null;
+  state: string; // or use PROPOSAL_STATUS enum
+  remarks?: string | null;
+  created_at: Date;
+  updated_at: Date;
+  remark_updated_at?: Date | null;
+  authorId: string;
+  teamCode?: string | null;
+  author?: {
+    firstName: string;
+    lastName: string;
+    email: string;
+    rollno?: string | null;
+  };
 }
 
 // eslint-disable-next-line import/no-unused-modules
@@ -40,11 +56,13 @@ export interface IProject {
   title: string;
   description: string;
   team: ITeam;
-    
 }
 
 // eslint-disable-next-line import/no-unused-modules
 export enum TEAM_STATUS {
+  PENDING = 'PENDING',
+  APPROVED = 'APPROVED',
+  REJECTED = 'REJECTED',
   PROPOSAL_SUBMISSION = 'PROPOSAL_SUBMISSION',
   PROPOSAL_ACCEPTED = 'PROPOSAL_ACCEPTED',
   PROJECT_IN_PROGRESS = 'PROJECT_IN_PROGRESS',
@@ -59,18 +77,18 @@ export interface ITeam {
   code: string;
   mentor: IUser;
   members: Array<{
-  id: string;
-  name: string;
-  email: string;
-  rollno?: string;
-  role?: 'LEADER' | 'MEMBER';
-}>;
-  proposals: Omit<IProposal, 'proposalURL'>[];
+    id: string;
+    name: string;
+    email: string;
+    rollno?: string;
+    role?: 'LEADER' | 'MEMBER';
+  }>;
+  proposals: IProposal[];
   project: IProject | null;
   stats: {
     proposals: number;
     teamNumber: string;
     members: number;
-    status: TEAM_STATUS;
-  }
+    status: TEAM_STATUS | string;
+  };
 }

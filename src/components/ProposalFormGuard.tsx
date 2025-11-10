@@ -27,6 +27,7 @@ interface ExistingProposal {
     travelTime?: string;
     executionTime?: string;
     completionDate?: string;
+    linkedin?: string;
   };
 }
 
@@ -69,6 +70,7 @@ export default function ProposalFormGuard({ children }: ProposalFormGuardProps) 
                   travelTime: proposal.travelTime || '',
                   executionTime: proposal.executionTime || '',
                   completionDate: proposal.completionDate || '',
+                  linkedin: proposal.linkedin || '',
                 }
               });
               setCanAccess(true);

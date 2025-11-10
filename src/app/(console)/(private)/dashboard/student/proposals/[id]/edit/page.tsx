@@ -63,7 +63,7 @@ export default function EditProposalPage({ params }: { params: { id: string } })
   if (!proposal) {
     return (
       <div className="container mx-auto px-4 py-8">
-        <div className="text-center text-gray-600">Proposal not found</div>
+        <div className="text-center text-gray-600">Project not found</div>
       </div>
     );
   }
@@ -71,7 +71,7 @@ export default function EditProposalPage({ params }: { params: { id: string } })
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Edit Proposal</h1>
+        <h1 className="text-2xl font-bold text-gray-900">Edit Project</h1>
         <div className="text-sm text-gray-500">
           Status: <span className="font-semibold">{proposal.state === 'DRAFT' ? 'Pending' : proposal.state}</span>
         </div>

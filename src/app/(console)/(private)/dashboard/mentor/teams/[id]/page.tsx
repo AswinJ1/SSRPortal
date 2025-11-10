@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Edit } from 'lucide-react';
+import { Edit, Verified } from 'lucide-react';
 
 type TeamLead = {
   firstName: string;
@@ -267,36 +267,75 @@ export default function TeamDetailPage() {
               <p className="text-gray-600 mt-2">{team.projectTitle}</p>
               <p className="text-sm text-gray-500">Project Pillar: {team.projectPillar}</p>
             </div>
-            <span className={`px-3 py-1 text-sm rounded-full ${
-              team.status === 'APPROVED'
-                ? 'bg-green-100 text-green-800'
-                : team.status === 'REJECTED'
-                ? 'bg-red-100 text-red-800'
-                : 'bg-yellow-100 text-yellow-800'
-            }`}>
-              {team.status}
-            </span>
+            <div className="text-right space-y-4">
+              {/* Team Status */}
+              <div>
+                <p className='text-sm text-gray-500 mb-2'>Team Status:</p>
+                <span className={`px-3 py-1 text-sm rounded-full ${
+                  team.status === 'APPROVED'
+                    ? 'bg-green-100 text-green-800'
+                    : team.status === 'REJECTED'
+                    ? 'bg-red-100 text-red-800'
+                    : 'bg-yellow-100 text-yellow-800'
+                }`}>
+                  {team.status}
+                </span>
+              </div>
+              
+              {/* Proposal Status */}
+              {proposals.length > 0 && (
+                <div>
+                  <p className='text-sm text-gray-500 mb-2'>Proposal Status:</p>
+                  {proposals.map((proposal) => (
+                    <span 
+                      key={proposal.id}
+                      className={`px-3 py-1 text-sm rounded-full ${
+                        proposal.state === 'APPROVED'
+                          ? 'bg-green-100 text-green-800'
+                          : proposal.state === 'REJECTED'
+                          ? 'bg-red-100 text-red-800'
+                          : 'bg-yellow-100 text-yellow-800'
+                      }`}
+                    >
+                      {proposal.state}
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
         <div className="flex gap-3">
-          <button
-            onClick={handleEvaluateTeam}
-            className="bg-green-600 rounded-md w-fit px-4 py-2 flex items-center gap-2 hover:bg-green-700 transition-colors text-white"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <span className="text-white">Evaluate Team</span>
-          </button>
+          {team.status === 'APPROVED' && (
+            <button
+              onClick={handleEvaluateTeam}
+              className="bg-green-600 rounded-md w-fit px-4 py-2 flex items-center gap-2 hover:bg-green-700 transition-colors text-white"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span className="text-white">Evaluate Team</span>
+            </button>
+          )}
           
           <Link
             href={`/dashboard/mentor/teams/edit/${team.id}`}
             className="bg-blue-500 rounded-md w-fit px-4 py-2 flex items-center gap-2 hover:bg-blue-600 transition-colors text-white"
           >
             <Edit className="text-white" />
-            <span className="text-white">Edit Team</span>
+            <span className="text-white">Edit Team | Approve Team</span>
           </Link>
+          {proposals.map((proposal) => (
+           <Link
+            key={proposal.id}
+            href={`/dashboard/mentor/proposals/${proposal.id}`}
+            className="bg-blue-500 rounded-md w-fit px-4 py-2 flex items-center gap-2 hover:bg-blue-600 transition-colors text-white"
+          >
+            <Verified className="text-white" />
+            <span className="text-white">Approve Final Report</span>
+          </Link>
+          ))}
         </div>
 
         <div className="bg-white p-6 rounded-lg shadow">
@@ -353,52 +392,7 @@ export default function TeamDetailPage() {
           </div>
         )}
 
-        {team.proposals.length > 0 && (
-          <div className="bg-white p-6 rounded-lg shadow">
-            <h2 className="text-xl font-semibold mb-4">Project Proposals</h2>
-            
-            {proposalsLoading ? (
-              <div className="flex justify-center py-8">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
-              </div>
-            ) : (
-              <div className="grid gap-4">
-                {proposals.map((proposal) => (
-                  <div key={proposal.id} className="p-4 border rounded-lg hover:shadow-sm transition-shadow">
-                    <div className="flex justify-between items-center">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-3 mb-2">
-                          <p className="font-medium text-lg">{proposal.title}</p>
-                          <span className={`px-2 py-1 text-xs rounded-full ${
-                            proposal.state === 'APPROVED'
-                              ? 'bg-green-100 text-green-800'
-                              : proposal.state === 'REJECTED'
-                              ? 'bg-red-100 text-red-800'
-                              : 'bg-yellow-100 text-yellow-800'
-                          }`}>
-                            {proposal.state}
-                          </span>
-                        </div>
-                        <p className="text-sm text-gray-600">
-                          By: {proposal.author.firstName} {proposal.author.lastName} ({proposal.author.rollno})
-                        </p>
-                        {/* <p className="text-xs text-gray-500 mt-1">
-                          Created: {new Date(proposal.created_at).toLocaleString()}
-                        </p> */}
-                      </div>
-                      <button
-                        onClick={() => handleViewProposal(proposal.id)}
-                        className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                      >
-                        View Proposal
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
+        
       </div>
     </div>
   );

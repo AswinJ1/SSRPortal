@@ -5,7 +5,7 @@ const prisma = new PrismaClient();
 
 async function main() {
   // Create admin user
-  const hashedPassword = await bcrypt.hash('SSR12@am161#fail', 10);
+  const hashedPassword = await bcrypt.hash('SSRPASS@123', 10);
 
   const admin = await prisma.user.upsert({
     where: { email: 'admin@amrita.edu' },

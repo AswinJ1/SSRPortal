@@ -24,6 +24,7 @@ interface Proposal {
     state?: string;
     district?: string;
     city?: string;
+    linkedin?:string;
     placeVisited?: string;
     travelTime?: string;
     executionTime?: string;
@@ -284,6 +285,18 @@ export default function MentorProposalsPage() {
                               <span className="text-gray-500">Google Drive (Photos & Videos):</span>
                               <a href={proposal.link} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
                                 View Google Drive Folder
+                              </a>
+                            </div>
+                          )}
+                          {proposal.metadata.linkedin && proposal.metadata.linkedin.trim() && !proposal.metadata.linkedin.startsWith('{') && (
+                            <div className="flex items-center space-x-2">
+                              <svg className="h-5 w-5 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M16 8a6 6 0 01-9.33 5.25V14H4v-5h2v1.5A4 4 0 0110 7a4 4 0 014 4v3h-2v-3a2 2 0 00-2-2 2 2 0 00-2 2V14h-2v-5h2v1.5A6 6 0 0016 8z" />
+                                <path d="M2 9h2v5H2zM3 4a1.5 1.5 0 110 3 1.5 1.5 0 010-3z" />
+                              </svg>
+                              <span className="text-gray-500">LinkedIn Post:</span>
+                              <a href={proposal.metadata.linkedin} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                                View LinkedIn Post
                               </a>
                             </div>
                           )}
