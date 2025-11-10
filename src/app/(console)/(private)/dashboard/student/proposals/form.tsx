@@ -36,7 +36,7 @@ const projectSchema = proposalSchema.extend({
   totalParticipants: z.string()
     .min(1, 'Total participants is required')
     .regex(/^[0-9]+$/, 'Total participants must be a valid number'),
-});
+}).omit({ content: true }); // Remove content from validation
 
 type ProjectFormData = z.infer<typeof projectSchema>;
 
@@ -498,17 +498,12 @@ export default function ProjectForm({ existingProposal, onEditMode }: ProjectFor
       // setValue('title', proposal.title); // Comment out - title now auto-filled from team
       setValue('description', proposal.description);
       
-      // Extract content and metadata
-      let cleanContent = proposal.content;
+      // Extract metadata from content field
       let metadata = null;
-      
-      // Try to extract metadata from content field (new format)
       const metadataMatch = proposal.content.match(/<!-- METADATA:(.*?) -->/);
       if (metadataMatch) {
         try {
           metadata = JSON.parse(metadataMatch[1]);
-          // Remove the metadata comment from content
-          cleanContent = proposal.content.replace(/\n\n<!-- METADATA:.*? -->/, '');
           console.log('Extracted metadata from content field:', metadata);
         } catch (e) {
           console.log('Failed to parse metadata from content field');
@@ -521,7 +516,7 @@ export default function ProjectForm({ existingProposal, onEditMode }: ProjectFor
           metadata = JSON.parse(proposal.link);
           console.log('Parsed metadata from link field (legacy):', metadata);
         } catch (e) {
-          console.log('Link field is not JSON metadata, checking metadata property. Link content:', proposal.link);
+          console.log('Link field is not JSON metadata');
         }
       }
       
@@ -530,8 +525,6 @@ export default function ProjectForm({ existingProposal, onEditMode }: ProjectFor
         metadata = proposal.metadata;
         console.log('Using metadata property:', metadata);
       }
-      
-      setValue('content', cleanContent);
       
       // Set Google Drive link from the proposal's link field
       setValue('gdriveLink', proposal.link || '');
@@ -549,6 +542,7 @@ export default function ProjectForm({ existingProposal, onEditMode }: ProjectFor
         
         if (metadata.state && metadata.state.trim()) {
           setValue('state', metadata.state);
+          setSelectedState(metadata.state);
         }
         if (metadata.district && metadata.district.trim()) {
           setValue('district', metadata.district);
@@ -583,11 +577,6 @@ export default function ProjectForm({ existingProposal, onEditMode }: ProjectFor
         }
         if (metadata.totalParticipants && metadata.totalParticipants.trim()) {
           setValue('totalParticipants', metadata.totalParticipants);
-        }
-        
-        // Set selected state for district dropdown
-        if (metadata.state && metadata.state.trim()) {
-          setSelectedState(metadata.state);
         }
       } else {
         console.log('No metadata found for pre-filling. This may be a proposal created before metadata storage was implemented.');
@@ -746,11 +735,13 @@ export default function ProjectForm({ existingProposal, onEditMode }: ProjectFor
       totalParticipants: data.totalParticipants || '',
     };
 
+    // Generate content from metadata
+    const contentFromMetadata = `<!-- METADATA:${JSON.stringify(metadata)} -->`;
+
     const payload = {
       title: data.title,
       description: data.description,
-      content: data.content + '\n\n<!-- METADATA:' + JSON.stringify(metadata) + ' -->',
-      // Preserve existing attachments if no new files uploaded
+      content: contentFromMetadata, // Use metadata as content
       attachment: uploadedFileUrls.length > 0 
         ? uploadedFileUrls.join(',') 
         : (currentProposal?.attachment || ''),
