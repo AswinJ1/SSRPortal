@@ -307,39 +307,35 @@ export default function TeamDetailPage() {
         </div>
 
         <div className="flex gap-3">
-          <button
-            onClick={handleEvaluateTeam}
-            className="bg-green-600 rounded-md w-fit px-4 py-2 flex items-center gap-2 hover:bg-green-700 transition-colors text-white"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <span className="text-white">Evaluate Team</span>
-          </button>
+          {team.status === 'APPROVED' && (
+            <button
+              onClick={handleEvaluateTeam}
+              className="bg-green-600 rounded-md w-fit px-4 py-2 flex items-center gap-2 hover:bg-green-700 transition-colors text-white"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span className="text-white">Evaluate Team</span>
+            </button>
+          )}
           
           <Link
             href={`/dashboard/mentor/teams/edit/${team.id}`}
             className="bg-blue-500 rounded-md w-fit px-4 py-2 flex items-center gap-2 hover:bg-blue-600 transition-colors text-white"
           >
             <Edit className="text-white" />
-            <span className="text-white">Edit Team</span>
+            <span className="text-white">Edit Team | Approve Team</span>
           </Link>
           {proposals.map((proposal) => (
            <Link
+            key={proposal.id}
             href={`/dashboard/mentor/proposals/${proposal.id}`}
             className="bg-blue-500 rounded-md w-fit px-4 py-2 flex items-center gap-2 hover:bg-blue-600 transition-colors text-white"
           >
             <Verified className="text-white" />
-            <span className="text-white">Verify Proposals</span>
+            <span className="text-white">Approve Final Report</span>
           </Link>
           ))}
-            <Link
-            href={`/dashboard/mentor/approval/${team.id}`}
-            className="bg-blue-500 rounded-md w-fit px-4 py-2 flex items-center gap-2 hover:bg-blue-600 transition-colors text-white"
-          >
-            <Verified className="text-white" />
-            <span className="text-white">Verify Proposals</span>
-          </Link>
         </div>
 
         <div className="bg-white p-6 rounded-lg shadow">

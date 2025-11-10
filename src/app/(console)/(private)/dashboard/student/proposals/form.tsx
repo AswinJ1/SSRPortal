@@ -1265,13 +1265,13 @@ export default function ProjectForm({ existingProposal, onEditMode }: ProjectFor
                   id="file-upload"
                   type="file"
                   multiple
-                  accept=".pdf,.doc,.docx,.ppt,.pptx,.mp4,.mov,.avi,.jpg,.jpeg,.png,.gif"
+                  accept=".pdf"
                   className="sr-only"
                   onChange={handleFileChange}
                 />
               </label>
               <p className="mt-2 text-sm text-gray-600">
-                PDF, DOC, DOCX, PPT, PPTX, MP4, MOV, AVI, JPG, PNG, GIF
+                PDF Only
               </p>
               <p className="text-xs text-gray-500 mt-1">
                 Maximum file size: 50MB per file

@@ -145,9 +145,10 @@ export const authOptions: AuthOptions = {
       };
 
       // IMPORTANT: If the URL is already a login page, don't redirect again
-      if (url.includes('/auth/student/signin') || 
-          url.includes('/auth/signin') || 
-          url.includes('/auth/admin/signin')) {
+      const urlPath = url.startsWith('http') ? new URL(url).pathname : url.split('?')[0];
+      if (urlPath === '/auth/student/signin' || 
+          urlPath === '/auth/signin' || 
+          urlPath === '/auth/admin/signin') {
         console.log('Already a login page, returning as-is:', url);
         // If it's a relative URL, make it absolute
         if (url.startsWith('/')) {

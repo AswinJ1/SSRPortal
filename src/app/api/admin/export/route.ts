@@ -183,7 +183,7 @@ Object.assign(COLUMN_MAPPING, {
       : 'No proposals'
   },
 
-  Linkedin: { 
+  proposalLinkedinPost: { 
     label: 'LinkedIn Post', 
     getValue: (data) => data.team.proposals.length > 0
       ? data.team.proposals.map((p: any) => {
