@@ -732,37 +732,41 @@ export default function ProjectForm({ existingProposal, onEditMode }: ProjectFor
     });
     
     // Only include fields that match the API schema
-    const metadata = {
-      category: data.category,
-      locationMode: data.locationMode,
-      state: data.state || '',
-      district: data.district || '',
-      linkedin: data.linkedin || '',
-      city: data.city || '',
-      placeVisited: data.placeVisited || '',
-      travelTime: data.travelTime || '',
-      executionTime: data.executionTime || '',
-      completionDate: data.completionDate || '',
-      totalParticipants: data.totalParticipants || '',
-    };
+    // In your form.tsx, around line 557
 
-    const payload = {
-      title: data.title,
-      description: data.description,
-      content: data.content + '\n\n<!-- METADATA:' + JSON.stringify(metadata) + ' -->',
-      // Preserve existing attachments if no new files uploaded
-      attachment: uploadedFileUrls.length > 0 
-        ? uploadedFileUrls.join(',') 
-        : (currentProposal?.attachment || ''),
-      poster_attachment: uploadedPosterUrls.length > 0 
-        ? uploadedPosterUrls.join(',') 
-        : (currentProposal?.poster_attachment || ''),
-      ppt_attachment: uploadedPptUrls.length > 0 
-        ? uploadedPptUrls.join(',') 
-        : (currentProposal?.ppt_attachment || ''),
-      link: data.gdriveLink || '',
-      _metadata: metadata
-    };
+const metadata = {
+  category: data.category,
+  locationMode: data.locationMode,
+  state: data.state || '',
+  district: data.district || '',
+  linkedin: data.linkedin || '',
+  city: data.city || '',
+  placeVisited: data.placeVisited || '',
+  travelTime: data.travelTime || '',
+  executionTime: data.executionTime || '',
+  completionDate: data.completionDate || '',
+  totalParticipants: data.totalParticipants || '',
+};
+
+// Create content with metadata embedded
+const contentWithMetadata = `${data.description}\n\n<!-- METADATA:${JSON.stringify(metadata)} -->`;
+
+const payload = {
+  title: data.title,
+  description: data.description,
+  content: contentWithMetadata, // ✅ Include metadata in content
+  attachment: uploadedFileUrls.length > 0 
+    ? uploadedFileUrls.join(',') 
+    : (currentProposal?.attachment || ''),
+  poster_attachment: uploadedPosterUrls.length > 0 
+    ? uploadedPosterUrls.join(',') 
+    : (currentProposal?.poster_attachment || ''),
+  ppt_attachment: uploadedPptUrls.length > 0 
+    ? uploadedPptUrls.join(',') 
+    : (currentProposal?.ppt_attachment || ''),
+  link: data.gdriveLink || '',
+  _metadata: metadata // Still send as separate field for API validation
+};
 
     console.log('Submitting payload:', payload);
 

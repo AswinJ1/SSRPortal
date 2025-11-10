@@ -30,12 +30,11 @@ export const proposalMetadataSchema = z.object({
 export const proposalSchema = z.object({
   title: z.string().min(5, 'Title must be at least 5 characters'),
   description: z.string().min(100, 'Description must be at least 100 characters'),
-  content: z.string().min(100, 'Content must be at least 100 characters'),
-  attachment: z.string().optional(), // Allow any string for file URLs (comma-separated)
-  ppt_attachment: z.string().optional(), // Allow any string for PPT file URLs
-  poster_attachment: z.string().optional(), // Allow any string for Poster file URLs
-  link: z.string().optional(), // Allow any string for links
-  // Validate metadata structure if provided
+  content: z.string().optional(), // ✅ Make it optional - will be auto-filled
+  attachment: z.string().optional(),
+  ppt_attachment: z.string().optional(),
+  poster_attachment: z.string().optional(),
+  link: z.string().optional(),
   _metadata: proposalMetadataSchema.optional(),
 });
 

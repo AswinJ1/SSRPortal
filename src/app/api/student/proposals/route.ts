@@ -91,7 +91,7 @@ export async function POST(req: Request) {
         data: {
           title: parsed.title,
           description: parsed.description,
-          content: parsed.content,
+          content: parsed.content || parsed.description, // ✅ Auto-fill from description
           attachment: parsed.attachment || '',
           ppt_attachment: parsed.ppt_attachment || '',
           poster_attachment: parsed.poster_attachment || '',
@@ -122,7 +122,7 @@ export async function POST(req: Request) {
       data: {
         title: parsed.title,
         description: parsed.description,
-        content: parsed.content,
+        content: parsed.content || parsed.description, // ✅ Auto-fill from description
         attachment: parsed.attachment || '',
         ppt_attachment: parsed.ppt_attachment || '',
         poster_attachment: parsed.poster_attachment || '',
