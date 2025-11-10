@@ -253,13 +253,24 @@ export async function PATCH(
       });
     }
 
+    // Only allow editing of drafts
+    if (existingProposal.state !== 'DRAFT') {
+      return new NextResponse(JSON.stringify({
+        error: 'Forbidden',
+        message: 'Only draft proposals can be edited'
+      }), { 
+        status: 403,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+
     const body = await request.json();
     const validatedData = updateProposalSchema.parse(body);
+    const { state: _ignoredState, ...allowedData } = validatedData;
 
-    // Ensure content is always a string (default to empty if not provided)
     const updateData = {
-      ...validatedData,
-      content: validatedData.content || existingProposal.content || '',
+      ...allowedData,
+      content: allowedData.content || existingProposal.content || '',
     };
 
     const updatedProposal = await prisma.proposal.update({
