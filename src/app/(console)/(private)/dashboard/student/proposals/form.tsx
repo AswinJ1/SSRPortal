@@ -1402,7 +1402,7 @@ export default function ProjectForm({ existingProposal, onEditMode }: ProjectFor
           <div className="space-y-6">
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Google Drive Link <span className="text-red-500">*</span>
+                Google Drive Link (provide the link of the images and video) <span className="text-red-500">*</span>
                 <span className="text-xs text-gray-500 font-normal ml-1">- Share link to folder with photos/videos</span>
               </label>
               <input
