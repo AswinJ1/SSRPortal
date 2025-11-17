@@ -427,7 +427,7 @@ const ViewDetailsPage = () => {
                           </div>
 
                           {/* Project Info */}
-                          <div>
+                          {/* <div>
                             <h4 className="font-semibold text-gray-900 mb-3 flex items-center">
                               <FileText className="h-5 w-5 mr-2 text-green-600" />
                               Project Information
@@ -458,7 +458,7 @@ const ViewDetailsPage = () => {
                                 <p className="text-sm text-gray-500">No project assigned</p>
                               )}
                             </div>
-                          </div>
+                          </div> */}
                         </div>
 
                         {/* Team Members */}
@@ -543,19 +543,25 @@ const ViewDetailsPage = () => {
                                       {proposal.attachment && (
                                         <div className="flex items-center text-gray-600">
                                           <Paperclip className="h-4 w-4 mr-1" />
-                                          Report Attached
+                                           <a href={proposal.attachment} target="_blank" rel="noopener noreferrer" className="hover:underline">
+                                          Report Link
+                                        </a>
                                         </div>
                                       )}
                                       {proposal.pptAttachment && (
                                         <div className="flex items-center text-gray-600">
                                           <Paperclip className="h-4 w-4 mr-1" />
-                                          PPT Attached
+                                          <a href={proposal.pptAttachment} target="_blank" rel="noopener noreferrer" className="hover:underline">
+                                          PPT Link
+                                        </a>
                                         </div>
                                       )}
                                       {proposal.posterAttachment && (
                                         <div className="flex items-center text-gray-600">
                                           <Paperclip className="h-4 w-4 mr-1" />
-                                          Poster Attached
+                                           <a href={proposal.posterAttachment} target="_blank" rel="noopener noreferrer" className="hover:underline">
+                                          Poster Link
+                                        </a>
                                         </div>
                                       )}
                                     </div>

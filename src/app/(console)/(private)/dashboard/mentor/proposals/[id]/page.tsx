@@ -296,12 +296,12 @@ export default function ProposalDetailPage() {
                 <p className="text-gray-600 whitespace-pre-wrap break-words">{proposal.description}</p>
               </div>
               
-              <div>
+              {/* <div>
                 <h3 className="font-semibold text-gray-700 mb-2">Content</h3>
                 <p className="text-gray-600 whitespace-pre-wrap break-words">
                   {proposal.content.replace(/\n\n<!-- METADATA:.*? -->/, '')}
                 </p>
-              </div>
+              </div> */}
             </div>
 
             {/* Attachments */}

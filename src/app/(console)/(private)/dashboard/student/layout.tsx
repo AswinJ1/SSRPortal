@@ -13,7 +13,7 @@ export default function StudentLayout({
   const navItems = [
     { href: '/dashboard/student', label: 'Overview' },
     { href: '/dashboard/student/team', label: 'Team' },
-    { href: '/dashboard/student/proposals', label: 'Proposal' },
+    { href: '/dashboard/student/proposals', label: 'Project' },
   ];
 
   return (
