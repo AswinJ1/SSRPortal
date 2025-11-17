@@ -17,10 +17,10 @@ interface IndividualMarks {
   memberId: string;
   memberName: string;
   memberEmail: string;
-  individualScore: number; // 3 marks (mentor's assessment)
-  learningContribution: number; // 2 marks (external evaluator)
-  presentationSkill: number; // 2 marks (external evaluator)
-  contributionToProject: number; // 2 marks (external evaluator)
+  individualScore: number;
+  learningContribution: number;
+  presentationSkill: number;
+  contributionToProject: number;
 }
 
 interface EvaluationFormProps {
@@ -36,6 +36,18 @@ const EvaluateForm: React.FC<EvaluationFormProps> = ({ teamId }) => {
   const [showForm, setShowForm] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
+
+  // ✅ ADD: Store original values for cancel functionality
+  const [originalValues, setOriginalValues] = useState<{
+    posterMarks: number;
+    videoMarks: number;
+    reportMarks: number;
+    pptMarks: number;
+    externalEvaluatorName: string;
+    externalEvaluatorEmail: string;
+    remarks: string;
+    individualMarks: Map<string, IndividualMarks>;
+  } | null>(null);
 
   // Group marks
   const [posterMarks, setPosterMarks] = useState(0);
@@ -130,6 +142,18 @@ const EvaluateForm: React.FC<EvaluationFormProps> = ({ teamId }) => {
 
     setTeamMembers(members);
     setIndividualMarks(marksMap);
+
+    // ✅ SAVE ORIGINAL VALUES
+    saveOriginalValues(
+      evaluation.posterMarks,
+      evaluation.videoMarks,
+      evaluation.reportMarks,
+      evaluation.pptMarks,
+      evaluation.externalEvaluatorName || '',
+      evaluation.externalEvaluatorEmail || '',
+      evaluation.remarks || '',
+      marksMap
+    );
   };
 
   const loadTeamData = (team: any) => {
@@ -152,6 +176,46 @@ const EvaluateForm: React.FC<EvaluationFormProps> = ({ teamId }) => {
       });
     });
     setIndividualMarks(marksMap);
+
+    // ✅ SAVE ORIGINAL VALUES (all zeros for new evaluation)
+    saveOriginalValues(0, 0, 0, 0, '', '', '', marksMap);
+  };
+
+  // ✅ NEW FUNCTION: Save original values
+  const saveOriginalValues = (
+    poster: number,
+    video: number,
+    report: number,
+    ppt: number,
+    evalName: string,
+    evalEmail: string,
+    rem: string,
+    marks: Map<string, IndividualMarks>
+  ) => {
+    setOriginalValues({
+      posterMarks: poster,
+      videoMarks: video,
+      reportMarks: report,
+      pptMarks: ppt,
+      externalEvaluatorName: evalName,
+      externalEvaluatorEmail: evalEmail,
+      remarks: rem,
+      individualMarks: new Map(marks) // Create a copy
+    });
+  };
+
+  // ✅ NEW FUNCTION: Restore original values
+  const restoreOriginalValues = () => {
+    if (originalValues) {
+      setPosterMarks(originalValues.posterMarks);
+      setVideoMarks(originalValues.videoMarks);
+      setReportMarks(originalValues.reportMarks);
+      setPptMarks(originalValues.pptMarks);
+      setExternalEvaluatorName(originalValues.externalEvaluatorName);
+      setExternalEvaluatorEmail(originalValues.externalEvaluatorEmail);
+      setRemarks(originalValues.remarks);
+      setIndividualMarks(new Map(originalValues.individualMarks));
+    }
   };
 
   const updateIndividualMarks = (teamMemberId: string, field: keyof IndividualMarks, value: number, max: number) => {
@@ -278,18 +342,21 @@ const EvaluateForm: React.FC<EvaluationFormProps> = ({ teamId }) => {
     setShowSuccessMessage(false);
   };
 
+  // ✅ UPDATED: Handle cancel with restore
+  const handleCancel = () => {
+    restoreOriginalValues();
+    if (isSubmitted) {
+      setShowForm(false);
+    } else {
+      router.back();
+    }
+  };
+
   const clampValue = (value: number, min: number, max: number): number => {
     return Math.min(Math.max(value, min), max);
   };
 
-  const handleNumberInput = (value: string, max: number, setter: (val: number) => void) => {
-    const numValue = parseFloat(value);
-    if (isNaN(numValue)) {
-      setter(0);
-    } else {
-      setter(clampValue(numValue, 0, max));
-    }
-  };
+  // ✅ REMOVED: handleNumberInput function (causing immediate clamping)
 
   if (fetching) {
     return (
@@ -315,7 +382,7 @@ const EvaluateForm: React.FC<EvaluationFormProps> = ({ teamId }) => {
     );
   }
 
-  // Details View
+  // Details View (unchanged - showing .toFixed(1) for decimals)
   if (isSubmitted && !showForm) {
     return (
       <div className="max-w-6xl mx-auto">
@@ -503,17 +570,11 @@ const EvaluateForm: React.FC<EvaluationFormProps> = ({ teamId }) => {
     );
   }
 
-  // Form View
+  // Form View - ✅ UPDATED INPUT HANDLING
   return (
     <div className="max-w-6xl mx-auto">
       <button
-        onClick={() => {
-          if (isSubmitted) {
-            setShowForm(false);
-          } else {
-            router.back();
-          }
-        }}
+        onClick={handleCancel}
         className="flex items-center text-blue-600 hover:text-blue-700 mb-4"
       >
         <ArrowLeft className="h-4 w-4 mr-2" />
@@ -530,14 +591,18 @@ const EvaluateForm: React.FC<EvaluationFormProps> = ({ teamId }) => {
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Poster Marks (Max: 2)
             </label>
+            {/* ✅ FIXED: Only update state, let user type freely */}
             <input
               type="number"
               min="0"
               max="2"
               step="0.5"
               value={posterMarks}
-              onChange={(e) => handleNumberInput(e.target.value, 2, setPosterMarks)}
-              onBlur={(e) => handleNumberInput(e.target.value, 2, setPosterMarks)}
+              onChange={(e) => setPosterMarks(parseFloat(e.target.value) || 0)}
+              onBlur={(e) => {
+                const val = parseFloat(e.target.value) || 0;
+                setPosterMarks(clampValue(val, 0, 2));
+              }}
               className="w-full border rounded px-3 py-2 focus:ring-2 focus:ring-blue-500"
             />
           </div>
@@ -552,8 +617,11 @@ const EvaluateForm: React.FC<EvaluationFormProps> = ({ teamId }) => {
               max="3"
               step="0.5"
               value={videoMarks}
-              onChange={(e) => handleNumberInput(e.target.value, 3, setVideoMarks)}
-              onBlur={(e) => handleNumberInput(e.target.value, 3, setVideoMarks)}
+              onChange={(e) => setVideoMarks(parseFloat(e.target.value) || 0)}
+              onBlur={(e) => {
+                const val = parseFloat(e.target.value) || 0;
+                setVideoMarks(clampValue(val, 0, 3));
+              }}
               className="w-full border rounded px-3 py-2 focus:ring-2 focus:ring-blue-500"
             />
           </div>
@@ -568,8 +636,11 @@ const EvaluateForm: React.FC<EvaluationFormProps> = ({ teamId }) => {
               max="3"
               step="0.5"
               value={reportMarks}
-              onChange={(e) => handleNumberInput(e.target.value, 3, setReportMarks)}
-              onBlur={(e) => handleNumberInput(e.target.value, 3, setReportMarks)}
+              onChange={(e) => setReportMarks(parseFloat(e.target.value) || 0)}
+              onBlur={(e) => {
+                const val = parseFloat(e.target.value) || 0;
+                setReportMarks(clampValue(val, 0, 3));
+              }}
               className="w-full border rounded px-3 py-2 focus:ring-2 focus:ring-blue-500"
             />
           </div>
@@ -584,8 +655,11 @@ const EvaluateForm: React.FC<EvaluationFormProps> = ({ teamId }) => {
               max="3"
               step="0.5"
               value={pptMarks}
-              onChange={(e) => handleNumberInput(e.target.value, 3, setPptMarks)}
-              onBlur={(e) => handleNumberInput(e.target.value, 3, setPptMarks)}
+              onChange={(e) => setPptMarks(parseFloat(e.target.value) || 0)}
+              onBlur={(e) => {
+                const val = parseFloat(e.target.value) || 0;
+                setPptMarks(clampValue(val, 0, 3));
+              }}
               className="w-full border rounded px-3 py-2 focus:ring-2 focus:ring-blue-500"
             />
           </div>
@@ -598,7 +672,7 @@ const EvaluateForm: React.FC<EvaluationFormProps> = ({ teamId }) => {
         </div>
       </div>
 
-      {/* Individual Marks Section */}
+      {/* Individual Marks Section - Apply same fix to all individual inputs */}
       <div className="bg-white rounded-lg shadow p-6 mb-6">
         <h2 className="text-xl font-semibold mb-4">Individual Evaluations</h2>
         
@@ -626,6 +700,7 @@ const EvaluateForm: React.FC<EvaluationFormProps> = ({ teamId }) => {
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Individual Assessment (Max: 3 marks)
                     </label>
+                    {/* ✅ FIXED: Let user type, clamp only on blur */}
                     <input
                       type="number"
                       min="0"
@@ -638,6 +713,10 @@ const EvaluateForm: React.FC<EvaluationFormProps> = ({ teamId }) => {
                         parseFloat(e.target.value) || 0,
                         3
                       )}
+                      onBlur={(e) => {
+                        const val = parseFloat(e.target.value) || 0;
+                        updateIndividualMarks(member.teamMemberId, 'individualScore', val, 3);
+                      }}
                       className="w-full border-2 border-blue-300 rounded px-3 py-2 focus:ring-2 focus:ring-blue-500 bg-white"
                     />
                     <div className="mt-4 pt-4 border-t-2 border-blue-300">
@@ -660,7 +739,7 @@ const EvaluateForm: React.FC<EvaluationFormProps> = ({ teamId }) => {
                     <div className="space-y-3">
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
-                    What's your philosophy/idea about SSR: (Max: 2)
+                          What's your philosophy/idea about SSR: (Max: 2)
                         </label>
                         <input
                           type="number"
@@ -674,6 +753,10 @@ const EvaluateForm: React.FC<EvaluationFormProps> = ({ teamId }) => {
                             parseFloat(e.target.value) || 0,
                             2
                           )}
+                          onBlur={(e) => {
+                            const val = parseFloat(e.target.value) || 0;
+                            updateIndividualMarks(member.teamMemberId, 'learningContribution', val, 2);
+                          }}
                           className="w-full border-2 border-green-300 rounded px-3 py-2 focus:ring-2 focus:ring-green-500 bg-white"
                         />
                       </div>
@@ -694,6 +777,10 @@ const EvaluateForm: React.FC<EvaluationFormProps> = ({ teamId }) => {
                             parseFloat(e.target.value) || 0,
                             2
                           )}
+                          onBlur={(e) => {
+                            const val = parseFloat(e.target.value) || 0;
+                            updateIndividualMarks(member.teamMemberId, 'presentationSkill', val, 2);
+                          }}
                           className="w-full border-2 border-green-300 rounded px-3 py-2 focus:ring-2 focus:ring-green-500 bg-white"
                         />
                       </div>
@@ -714,6 +801,10 @@ const EvaluateForm: React.FC<EvaluationFormProps> = ({ teamId }) => {
                             parseFloat(e.target.value) || 0,
                             2
                           )}
+                          onBlur={(e) => {
+                            const val = parseFloat(e.target.value) || 0;
+                            updateIndividualMarks(member.teamMemberId, 'contributionToProject', val, 2);
+                          }}
                           className="w-full border-2 border-green-300 rounded px-3 py-2 focus:ring-2 focus:ring-green-500 bg-white"
                         />
                       </div>
@@ -750,7 +841,7 @@ const EvaluateForm: React.FC<EvaluationFormProps> = ({ teamId }) => {
         </div>
       </div>
 
-      {/* External Evaluator & Remarks */}
+      {/* External Evaluator & Remarks - unchanged */}
       <div className="bg-white rounded-lg shadow p-6 mb-6">
         <h2 className="text-xl font-semibold mb-4">Additional Information (Optional)</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
@@ -795,10 +886,10 @@ const EvaluateForm: React.FC<EvaluationFormProps> = ({ teamId }) => {
         </div>
       </div>
 
-      {/* Action Buttons */}
+      {/* Action Buttons - ✅ UPDATED Cancel button */}
       <div className="flex justify-end space-x-4 mb-6">
         <button
-          onClick={() => isSubmitted ? setShowForm(false) : router.back()}
+          onClick={handleCancel}
           disabled={loading}
           className="px-6 py-3 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors disabled:opacity-50"
         >

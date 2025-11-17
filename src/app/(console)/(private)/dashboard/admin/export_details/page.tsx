@@ -47,32 +47,32 @@ const AVAILABLE_COLUMNS = [
   { id: 'proposalSubmittedAt', label: 'Proposal Submitted Date', category: 'Proposal Details' },
   
   // Group Marks (11 marks total - same for all team members)
-  { id: 'evaluationPosterMarks', label: 'Poster Marks (Out of 2)', category: 'Evaluation - Group Marks' },
-  { id: 'evaluationVideoMarks', label: 'Video Marks (Out of 3)', category: 'Evaluation - Group Marks' },
-  { id: 'evaluationReportMarks', label: 'Report Marks (Out of 3)', category: 'Evaluation - Group Marks' },
-  { id: 'evaluationPptMarks', label: 'PPT Marks (Out of 3)', category: 'Evaluation - Group Marks' },
-  { id: 'evaluationGroupScore', label: 'Group Score (Out of 11)', category: 'Evaluation - Group Marks' },
+  // { id: 'evaluationPosterMarks', label: 'Poster Marks (Out of 2)', category: 'Evaluation - Group Marks' },
+  // { id: 'evaluationVideoMarks', label: 'Video Marks (Out of 3)', category: 'Evaluation - Group Marks' },
+  // { id: 'evaluationReportMarks', label: 'Report Marks (Out of 3)', category: 'Evaluation - Group Marks' },
+  // { id: 'evaluationPptMarks', label: 'PPT Marks (Out of 3)', category: 'Evaluation - Group Marks' },
+  // { id: 'evaluationGroupScore', label: 'Group Score (Out of 11)', category: 'Evaluation - Group Marks' },
   
-  // Mentor Marks (14 marks total = Group 11 + Individual 3)
-  { id: 'evaluationIndividualScore', label: 'Individual Score - Mentor Assessment (Out of 3)', category: 'Evaluation - Mentor Marks' },
-  { id: 'evaluationMentorTotal', label: 'Mentor Total Marks (Out of 14)', category: 'Evaluation - Mentor Marks' },
+  // // Mentor Marks (14 marks total = Group 11 + Individual 3)
+  // { id: 'evaluationIndividualScore', label: 'Individual Score - Mentor Assessment (Out of 3)', category: 'Evaluation - Mentor Marks' },
+  // { id: 'evaluationMentorTotal', label: 'Mentor Total Marks (Out of 14)', category: 'Evaluation - Mentor Marks' },
   
-  // External Evaluator Marks (6 marks total)
-  { id: 'evaluationLearningContribution', label: 'What\'s your philosophy/idea about SSR (Out of 2)', category: 'Evaluation - External Evaluator Marks' },
-  { id: 'evaluationPresentationSkill', label: 'Presentation Skill (Out of 2)', category: 'Evaluation - External Evaluator Marks' },
-  { id: 'evaluationContributionToProject', label: 'Learnings (Out of 2)', category: 'Evaluation - External Evaluator Marks' },
-  { id: 'evaluationExternalMarks', label: 'External Evaluator Total (Out of 6)', category: 'Evaluation - External Evaluator Marks' },
+  // // External Evaluator Marks (6 marks total)
+  // { id: 'evaluationLearningContribution', label: 'What\'s your philosophy/idea about SSR (Out of 2)', category: 'Evaluation - External Evaluator Marks' },
+  // { id: 'evaluationPresentationSkill', label: 'Presentation Skill (Out of 2)', category: 'Evaluation - External Evaluator Marks' },
+  // { id: 'evaluationContributionToProject', label: 'Learnings (Out of 2)', category: 'Evaluation - External Evaluator Marks' },
+  // { id: 'evaluationExternalMarks', label: 'External Evaluator Total (Out of 6)', category: 'Evaluation - External Evaluator Marks' },
   
   // Total Marks (20 marks = Mentor 14 + External 6)
   { id: 'evaluationTotalIndividualMarks', label: 'Final Total Marks (Out of 20)', category: 'Evaluation - Total Marks' },
   
   // Evaluation Metadata
-  { id: 'evaluationStatus', label: 'Evaluation Status', category: 'Evaluation - Metadata' },
-  { id: 'evaluationExternalEvaluatorName', label: 'External Evaluator Name', category: 'Evaluation - Metadata' },
-  { id: 'evaluationExternalEvaluatorEmail', label: 'External Evaluator Email', category: 'Evaluation - Metadata' },
-  { id: 'evaluationRemarks', label: 'Evaluation Remarks', category: 'Evaluation - Metadata' },
-  { id: 'evaluationDate', label: 'Evaluation Date', category: 'Evaluation - Metadata' },
-  { id: 'evaluationLastUpdated', label: 'Evaluation Last Updated', category: 'Evaluation - Metadata' },
+  // { id: 'evaluationStatus', label: 'Evaluation Status', category: 'Evaluation - Metadata' },
+  // { id: 'evaluationExternalEvaluatorName', label: 'External Evaluator Name', category: 'Evaluation - Metadata' },
+  // { id: 'evaluationExternalEvaluatorEmail', label: 'External Evaluator Email', category: 'Evaluation - Metadata' },
+  // { id: 'evaluationRemarks', label: 'Evaluation Remarks', category: 'Evaluation - Metadata' },
+  // { id: 'evaluationDate', label: 'Evaluation Date', category: 'Evaluation - Metadata' },
+  // { id: 'evaluationLastUpdated', label: 'Evaluation Last Updated', category: 'Evaluation - Metadata' },
 ];
 
 const ExportPage = () => {

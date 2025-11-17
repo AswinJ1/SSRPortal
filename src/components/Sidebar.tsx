@@ -17,14 +17,14 @@ import { FcExport } from 'react-icons/fc';
 const studentLinks = [
   { href: '/dashboard/student', label: 'Dashboard', icon: Home },
   { href: '/dashboard/student/team', label: 'Team', icon: Users },
-  { href: '/dashboard/student/proposals', label: 'Proposals', icon: FileText },
+  { href: '/dashboard/student/proposals', label: 'Project', icon: FileText },
   // { href: '/dashboard/student/project', label: 'Project', icon: BookOpen },
 ];
 
 const mentorLinks = [
   { href: '/dashboard/mentor', label: 'Dashboard', icon: Home },
   { href: '/dashboard/mentor/teams', label: 'Teams', icon: Users },
-  { href: '/dashboard/mentor/proposals', label: 'Proposals', icon: FileText },
+  { href: '/dashboard/mentor/proposals', label: 'Projects', icon: FileText },
 ];
 
 const adminLinks = [
