@@ -107,54 +107,60 @@ const EvaluateForm: React.FC<EvaluationFormProps> = ({ teamId }) => {
     }
   };
 
-  const loadExistingEvaluation = (evaluation: any) => {
-    setPosterMarks(evaluation.posterMarks);
-    setVideoMarks(evaluation.videoMarks);
-    setReportMarks(evaluation.reportMarks);
-    setPptMarks(evaluation.pptMarks);
-    setExternalEvaluatorName(evaluation.externalEvaluatorName || '');
-    setExternalEvaluatorEmail(evaluation.externalEvaluatorEmail || '');
-    setRemarks(evaluation.remarks || '');
+ const loadExistingEvaluation = (evaluation: any) => {
+  setPosterMarks(evaluation.posterMarks);
+  setVideoMarks(evaluation.videoMarks);
+  setReportMarks(evaluation.reportMarks);
+  setPptMarks(evaluation.pptMarks);
+  setExternalEvaluatorName(evaluation.externalEvaluatorName || '');
+  setExternalEvaluatorEmail(evaluation.externalEvaluatorEmail || '');
+  setRemarks(evaluation.remarks || '');
+  
+  setTeamNumber(evaluation.team?.teamNumber || '');
+  setProjectTitle(evaluation.team?.projectTitle || '');
+  setBatch(evaluation.team?.batch || '');
 
-    const marksMap = new Map<string, IndividualMarks>();
-    const members: TeamMember[] = [];
+  // ✅ FIX: Use ALL team members from team.members
+  const allMembers: TeamMember[] = evaluation.team?.members || [];
+  setTeamMembers(allMembers); // Shows all 4 members!
 
-    evaluation.individualEvaluations.forEach((ie: any) => {
-      marksMap.set(ie.teamMemberId, {
-        teamMemberId: ie.teamMemberId,
-        memberId: ie.memberId,
-        memberName: ie.memberName,
-        memberEmail: ie.memberEmail,
-        individualScore: ie.individualScore,
-        learningContribution: ie.learningContribution,
-        presentationSkill: ie.presentationSkill,
-        contributionToProject: ie.contributionToProject
-      });
-      
-      members.push({
-        id: ie.memberId,
-        teamMemberId: ie.teamMemberId,
-        name: ie.memberName,
-        email: ie.memberEmail,
-        rollNumber: ''
-      });
+  // ✅ FIX: Create a map of existing evaluations
+  const existingEvaluationsMap = new Map();
+  evaluation.individualEvaluations.forEach((ie: any) => {
+    existingEvaluationsMap.set(ie.teamMemberId, ie);
+  });
+
+  // ✅ FIX: For each member, use existing eval or default to 0
+  const marksMap = new Map<string, IndividualMarks>();
+  allMembers.forEach((member: TeamMember) => {
+    const existingEval = existingEvaluationsMap.get(member.teamMemberId);
+    
+    marksMap.set(member.teamMemberId, {
+      teamMemberId: member.teamMemberId,
+      memberId: member.id,
+      memberName: member.name,
+      memberEmail: member.email,
+      individualScore: existingEval?.individualScore || 0,
+      learningContribution: existingEval?.learningContribution || 0,
+      presentationSkill: existingEval?.presentationSkill || 0,
+      contributionToProject: existingEval?.contributionToProject || 0
     });
+  });
 
-    setTeamMembers(members);
-    setIndividualMarks(marksMap);
+  setIndividualMarks(marksMap);
 
-    // ✅ SAVE ORIGINAL VALUES
-    saveOriginalValues(
-      evaluation.posterMarks,
-      evaluation.videoMarks,
-      evaluation.reportMarks,
-      evaluation.pptMarks,
-      evaluation.externalEvaluatorName || '',
-      evaluation.externalEvaluatorEmail || '',
-      evaluation.remarks || '',
-      marksMap
-    );
-  };
+  // ✅ SAVE ORIGINAL VALUES
+  saveOriginalValues(
+    evaluation.posterMarks,
+    evaluation.videoMarks,
+    evaluation.reportMarks,
+    evaluation.pptMarks,
+    evaluation.externalEvaluatorName || '',
+    evaluation.externalEvaluatorEmail || '',
+    evaluation.remarks || '',
+    marksMap
+  );
+};
 
   const loadTeamData = (team: any) => {
     setTeamNumber(team.teamNumber);
