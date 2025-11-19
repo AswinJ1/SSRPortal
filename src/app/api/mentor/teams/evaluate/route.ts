@@ -79,6 +79,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'You are not assigned to this team' }, { status: 403 });
     }
 
+    // ✅ First, always fetch the full team data with ALL members
     const team = await prisma.team.findUnique({
       where: { id: teamId },
       include: {
@@ -104,6 +105,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'Team not found' }, { status: 404 });
     }
 
+    // ✅ Check if evaluation exists
     const existingEvaluation = await prisma.teamEvaluation.findUnique({
       where: { teamId: teamId },
       include: {
@@ -111,23 +113,37 @@ export async function GET(req: NextRequest) {
           include: {
             teamMember: true
           }
-        },
-        team: {  // does this solve issue
-          include: {
-            members: true
-         }
         }
       }
     });
 
     if (existingEvaluation) {
+      // ✅ Return evaluation WITH all team members (not just evaluated ones)
       return NextResponse.json({
         message: 'Evaluation found',
-        data: existingEvaluation
+        data: {
+          ...existingEvaluation,
+          team: {
+            id: team.id,
+            teamNumber: team.teamNumber,
+            projectTitle: team.projectTitle,
+            batch: team.batch,
+            members: team.members.map(member => ({
+              id: member.id,
+              teamMemberId: member.id,
+              name: member.name,
+              email: member.email,
+              role: member.role,
+              rollNumber: member.rollNumber,
+              user: member.user
+            })),
+            proposals: team.proposals
+          }
+        }
       });
-    } //bug was there not included missed evaluated members
+    }
 
-
+    // ✅ No evaluation exists, return team data with all members
     return NextResponse.json({
       message: 'No evaluation found, returning team data',
       data: {
