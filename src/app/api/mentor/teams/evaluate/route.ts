@@ -111,6 +111,11 @@ export async function GET(req: NextRequest) {
           include: {
             teamMember: true
           }
+        },
+        team: {  // does this solve issue
+          include: {
+            members: true
+         }
         }
       }
     });
@@ -120,7 +125,8 @@ export async function GET(req: NextRequest) {
         message: 'Evaluation found',
         data: existingEvaluation
       });
-    }
+    } //bug was there not included missed evaluated members
+
 
     return NextResponse.json({
       message: 'No evaluation found, returning team data',
